@@ -1,0 +1,61 @@
+
+# ============================================================
+# AVVIO MERIDIANA FREECAD
+# ============================================================
+
+import os
+import sys
+import importlib
+
+
+# ------------------------------------------------------------
+# CARTELLA DEGLI SCRIPT
+# ------------------------------------------------------------
+
+try:
+
+    CARTELLA = os.path.dirname(
+        os.path.abspath(__file__)
+    )
+
+except NameError:
+
+    CARTELLA = r"C:\FreeCAD\MeridianaFreeCAD"
+
+
+if not os.path.isdir(CARTELLA):
+
+    raise RuntimeError(
+        "Cartella non trovata: " + CARTELLA
+    )
+
+
+if CARTELLA not in sys.path:
+
+    sys.path.insert(0, CARTELLA)
+
+
+# ------------------------------------------------------------
+# CARICAMENTO E AGGIORNAMENTO MODULI
+# ------------------------------------------------------------
+
+import parametri
+import astronomia
+import geometria
+import meridiana
+
+
+importlib.reload(parametri)
+
+importlib.reload(astronomia)
+
+importlib.reload(geometria)
+
+importlib.reload(meridiana)
+
+
+# ------------------------------------------------------------
+# GENERAZIONE MERIDIANA
+# ------------------------------------------------------------
+
+doc = meridiana.crea()

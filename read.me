@@ -1,0 +1,84 @@
+
+PROGETTO MERIDIANA FREECAD
+==========================
+
+INSTALLAZIONE
+-------------
+
+1. Crea una cartella chiamata MeridianaFreeCAD.
+
+2. Copia al suo interno i seguenti file:
+
+   parametri.py
+   astronomia.py
+   geometria.py
+   meridiana.py
+   Avvia_Meridiana.FCMacro
+
+3. Avvia FreeCAD.
+
+4. Apri:
+   Macro > Macros > Esegui
+
+5. Seleziona Avvia_Meridiana.FCMacro.
+
+6. FreeCAD genererà il quadrante completo.
+
+
+MODIFICARE I PARAMETRI
+----------------------
+
+Apri parametri.py con un editor di testo.
+
+Esempio:
+
+"latitudine": 45.7546,
+"longitudine": 11.9572,
+
+"larghezza": 800.0,
+"altezza": 1000.0,
+
+"lunghezza_gnomone": 300.0,
+
+Salva il file.
+
+Esegui nuovamente la macro.
+
+Il quadrante verrà rigenerato con i nuovi parametri.
+
+
+MODIFICA DIRETTA DALLA CONSOLE
+------------------------------
+
+Una volta caricata la libreria puoi utilizzare:
+
+import meridiana
+
+meridiana.crea(
+    larghezza=800,
+    altezza=1000,
+    latitudine=45.75,
+    longitudine=11.96,
+    lunghezza_gnomone=280
+)
+
+Puoi modificare i singoli parametri senza modificare
+il file parametri.py.
+
+
+SALVATAGGIO
+-----------
+
+Dopo la generazione:
+
+File > Salva con nome
+
+Salva il progetto in formato FCStd.
+
+Il documento contiene gruppi separati per:
+
+01 - Quadrante
+02 - Linee orarie
+03 - Curve calendariali
+04 - Analemma solare
+05 - Gnomone
