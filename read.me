@@ -82,3 +82,35 @@ Il documento contiene gruppi separati per:
 03 - Curve calendariali
 04 - Analemma solare
 05 - Gnomone
+
+
+PARAMETRI AVANZATI
+------------------
+
+Le linee orarie possono usare come riferimento:
+
+"riferimento_linee_orarie": "solare_medio_locale"
+
+Sono disponibili anche:
+
+"estendi_curve_calendariali": True
+"analemma_tutte_ore_luce": True
+"crea_etichette_ore": True
+"crea_etichette_curve": True
+"modalita_diagnostica": False
+
+Con "analemma_tutte_ore_luce" attivo viene creato un
+analemma separato per ogni ora illuminata.
+
+Le voci di "date_curve" hanno il formato:
+
+("ETICHETTA", mese, giorno, declinazione_gradi)
+
+Con declinazione_gradi = None viene usata la declinazione
+calcolata per la data. Con declinazione_gradi = 0.0 si
+ottiene la curva teorica degli equinozi, senza controlli
+sul testo dell'etichetta.
+
+"x_attacco", "quota_attacco" e
+"quota_attacco_orizzontale" sono quote relative comprese
+tra 0 e 1.

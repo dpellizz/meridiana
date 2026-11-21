@@ -122,6 +122,35 @@ def vettore_sole(declinazione, angolo_orario, latitudine):
 # ANGOLO ORARIO PER L'ANALEMMA
 # ============================================================
 
+def correzione_riferimento_minuti(parametri, riferimento):
+
+    if riferimento == "solare_medio_locale":
+        return 0.0
+
+    minuti = 4.0 * (
+        parametri["longitudine"]
+        - parametri["meridiano_fuso"]
+    )
+
+    if riferimento == "CEST":
+        minuti -= 60.0
+
+    return minuti
+
+
+def angolo_orario_ora(ora, parametri):
+
+    minuti = (
+        (ora - 12.0) * 60.0
+        + correzione_riferimento_minuti(
+            parametri,
+            parametri["riferimento_linee_orarie"]
+        )
+    )
+
+    return math.radians(minuti * 0.25)
+
+
 def angolo_orario_analemma(giorno, parametri):
 
     anno = parametri["anno"]
@@ -137,17 +166,10 @@ def angolo_orario_analemma(giorno, parametri):
 
     minuti = (ora - 12.0) * 60.0 + E
 
-    riferimento = parametri["riferimento_analemma"]
-
-    if riferimento in ("CET", "CEST"):
-
-        minuti += 4.0 * (
-            parametri["longitudine"]
-            - parametri["meridiano_fuso"]
-        )
-
-        if riferimento == "CEST":
-            minuti -= 60.0
+    minuti += correzione_riferimento_minuti(
+        parametri,
+        parametri["riferimento_analemma"]
+    )
 
     # 15 gradi per ora = 0.25 gradi per minuto
 
@@ -165,15 +187,11 @@ def conversione_ora_civile(ora_solare, giorno, parametri):
         parametri["anno"]
     )
 
-    correzione_longitudine = 4.0 * (
-        parametri["longitudine"]
-        - parametri["meridiano_fuso"]
-    )
-
     riferimento = parametri["riferimento_analemma"]
 
-    ora_legale = (
-        1.0 if riferimento == "CEST" else 0.0
+    correzione_riferimento = correzione_riferimento_minuti(
+        parametri,
+        riferimento
     )
 
     return (
@@ -182,8 +200,6 @@ def conversione_ora_civile(ora_solare, giorno, parametri):
 
         - E / 60.0
 
-        - correzione_longitudine / 60.0
-
-        + ora_legale
+        - correzione_riferimento / 60.0
 
     )

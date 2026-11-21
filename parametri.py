@@ -11,9 +11,13 @@ PARAMETRI = {
     # --------------------------------------------------------
     # POSIZIONE GEOGRAFICA
     # --------------------------------------------------------
-    # lat 45.759280, long 11.956822 home
-    # lat 45.715410, long 11.957977 grampa
-    # 
+    # Latitudine geografica in gradi decimali (-90, 90).
+    # Nord positivo, Sud negativo.
+    # Esempi: casa 45.759280, nonno 45.715410.
+    #
+    # Longitudine geografica in gradi decimali (-180, 180).
+    # Est positivo, Ovest negativo.
+    #
     "latitudine": 45.759280,
     "longitudine": 11.956822,
 
@@ -22,126 +26,178 @@ PARAMETRI = {
     # SUD / EST / OVEST / ORIZZONTALE
     # --------------------------------------------------------
 
-    "orientamento": "OVEST",
+    # Parete o piano del quadrante:
+    # SUD, EST, OVEST oppure ORIZZONTALE.
+    "orientamento": "EST",
 
     # --------------------------------------------------------
     # DIMENSIONI QUADRANTE (mm)
     # --------------------------------------------------------
 
+    # Larghezza del quadrante lungo l'asse X, in mm.
     "larghezza": 300.0,
+
+    # Altezza del quadrante lungo l'asse Y, in mm.
     "altezza": 300.0,
+
+    # Spessore della piastra, in mm.
     "spessore": 5.0,
 
     # --------------------------------------------------------
     # POSIZIONE ATTACCO GNOMONE
     # --------------------------------------------------------
 
-    # quota nelle posisionei verticali (fra 0 e 1)
-    "quota_attacco": 0.50,
+    # Quota verticale dell'attacco per SUD, EST e OVEST.
+    # E' una frazione dell'altezza: 0 = bordo inferiore,
+    # 1 = bordo superiore.
+    "quota_attacco": 0.60,
 
-    # quota nelle posisionei orizzontali (fra 0 e 1)
-    "quota_attacco_orizzontale": 0.15,
+    # Quota verticale dell'attacco per ORIZZONTALE.
+    # E' una frazione dell'altezza del quadrante.
+    "quota_attacco_orizzontale": 0.1,
 
-    # None = centro della larghezza
-
-    "x_attacco": None,
+    # Posizione orizzontale dell'attacco come frazione
+    # della larghezza: 0 = bordo sinistro, 1 = destro.
+    "x_attacco": 0.60,
 
     # --------------------------------------------------------
     # GNOMONE (mm)
     # --------------------------------------------------------
 
+    # Lunghezza dell'asta dello gnomone, in mm.
     "lunghezza_gnomone": 100.0,
-    
-    # raggio del gnomone (mm) spessore/diametro del cilindro
-    "raggio_gnomone": 2.5,
 
-    # Distanza del nodus dalla parete EST/OVEST
+    # Raggio del cilindro dello gnomone, in mm.
+    "raggio_gnomone": 1.5,
 
-    "stacco_gnomone": 45.0,
-
-    # --------------------------------------------------------
-    # INTERVALLO ORARIO
-    # None = automatico in base all'orientamento
-    # --------------------------------------------------------
-
-    "ora_inizio": None,
-    "ora_fine": None,
+    # Distanza del nodus dalla parete per EST/OVEST, in mm.
+    # Per le altre configurazioni non determina l'inclinazione.
+    "stacco_gnomone": 100.0,
 
     # --------------------------------------------------------
     # CURVE CALENDARIALI
     # --------------------------------------------------------
 
+    # Anno usato per declinazione solare, analemmi e date.
     "anno": 2026,
 
-    # Una curva per i due equinozi e due curve
-    # per i solstizi.
-
+    # Elenco delle curve calendariali da disegnare.
+    # Ogni elemento e':
+    # (etichetta, mese, giorno, declinazione_gradi).
+    #
+    # Se declinazione_gradi e' None, viene calcolata dalla
+    # data. Se e' un numero, viene usata quella declinazione
+    # in gradi; 0.0 rappresenta la curva teorica degli
+    # equinozi.
+    #
+    # Le date non devono essere duplicate.
     "date_curve": [
 
-        ("EQUINOZI", 3, 20),
+        ("EQUI PRIMAVERA", 3, 20, 0.0),
 
-        ("SOLSTIZIO ESTIVO", 6, 21),
+        ("EQUI AUTUNNO", 9, 23, 0.0),
 
-        ("SOLSTIZIO INVERNALE", 12, 21),
+        ("SOLSTIZIO ESTIVO", 6, 21, None),
+
+        ("SOLSTIZIO INVERNALE", 12, 21, None),
 
     ],
 
-    # Numero di punti per ogni curva
+    # Numero di campioni per ogni curva calendariale.
+    # Valori maggiori producono curve piu' regolari ma
+    # richiedono piu' tempo per la generazione.
+    "campioni_curve": 1000,
 
-    "campioni_curve": 321,
-
-    # Campionamento delle linee orarie EST/OVEST
-
-    "passo_giorni_ore": 1,
+    # Se True, estende le curve secondo la geometria solare
+    # anche oltre i periodi di illuminazione effettiva.
+    # I tratti fuori dalla piastra vengono comunque esclusi.
+    "estendi_curve_calendariali": True,
 
     # --------------------------------------------------------
     # ANALEMMA
     # --------------------------------------------------------
 
+    # Se True, disegna l'analemma.
     "crea_analemma": True,
 
-    # None = automatico:
+    # Se True, crea un analemma separato per ogni ora
+    # in cui la superficie e' illuminata almeno un giorno
+    # dell'anno. Se False, usa solo ora_analemma.
+    "analemma_tutte_ore_luce": True,
+
+    # Ora dell'analemma singolo, in ore decimali.
+    # None seleziona automaticamente:
     # SUD = 12
     # EST = 9
     # OVEST = 15
     # ORIZZONTALE = 12
-
     "ora_analemma": None,
 
-    # solare_medio_locale / CET / CEST
+    # Riferimento temporale dell'analemma:
+    # solare_medio_locale, CET oppure CEST.
+    "riferimento_analemma": "CEST",
 
-    "riferimento_analemma": "solare_medio_locale",
-
-    # Meridiano di riferimento CET/CEST
-
+    # Meridiano centrale del fuso, in gradi di longitudine.
+    # Usato solo con CET o CEST; per l'Italia e' 15 gradi Est.
     "meridiano_fuso": 15.0,
+
+    # Riferimento temporale delle linee orarie:
+    # solare_medio_locale, CET oppure CEST.
+    "riferimento_linee_orarie": "CEST",
 
     # --------------------------------------------------------
     # CREAZIONE OGGETTI
     # --------------------------------------------------------
 
+    # Se True, crea la piastra del quadrante.
     "crea_piastra": True,
+
+    # Se True, crea lo gnomone 3D.
     "crea_gnomone": True,
-    "crea_etichette": True,
+
+    # Interruttore generale per tutte le etichette testuali.
+    "crea_etichette": False,
+
+    # Se True e crea_etichette e' True, crea le ore.
+    "crea_etichette_ore": True,
+
+    # Se True e crea_etichette e' True, crea le etichette
+    # di equinozi, solstizi e date calendariali.
+    "crea_etichette_curve": True,
 
     # --------------------------------------------------------
     # VISUALIZZAZIONE
     # --------------------------------------------------------
 
+    # Quota Z delle linee sulla faccia della piastra, in mm.
     "quota_linee": 0.8,
 
+    # Spessore grafico delle linee in FreeCAD.
     "spessore_linee": 1.5,
 
+    # Distanza aggiuntiva delle etichette dalle geometrie, in mm.
+    "margine_etichette": 6.0,
+
+    # Se True, stampa nel report le ore illuminate e le
+    # principali scelte geometriche e temporali.
+    "modalita_diagnostica": False,
+
+    # Colore RGB della piastra, componenti tra 0 e 1.
     "colore_piastra": (0.88, 0.84, 0.72),
 
+    # Colore RGB delle linee orarie.
     "colore_ore": (0.12, 0.20, 0.38),
 
+    # Colore RGB della linea di mezzogiorno.
     "colore_mezzogiorno": (0.80, 0.12, 0.08),
 
+    # Colore RGB delle curve calendariali.
     "colore_mesi": (0.15, 0.48, 0.24),
 
+    # Colore RGB degli analemmi.
     "colore_analemma": (0.75, 0.08, 0.60),
 
+    # Colore RGB dello gnomone.
     "colore_gnomone": (0.72, 0.72, 0.76),
 
 }
@@ -189,8 +245,8 @@ def get_parametri(**modifiche):
 
     # Posizione attacco
 
-    if p["x_attacco"] is None:
-        p["x_attacco"] = p["larghezza"] / 2.0
+    if not 0 < p["x_attacco"] < 1:
+        raise ValueError("Quota attacco orizzontale non valida")
 
     if not 0 < p["quota_attacco"] < 1:
         raise ValueError("Quota attacco verticale non valida")
@@ -208,52 +264,6 @@ def get_parametri(**modifiche):
 
     if p["stacco_gnomone"] <= 0:
         raise ValueError("Stacco gnomone non valido")
-
-    # Intervalli orari automatici
-
-    intervalli = {
-
-        "SUD": (7, 17),
-
-        "EST": (6, 11),
-
-        "OVEST": (14, 18),
-
-        "ORIZZONTALE": (7, 17),
-
-    }
-
-    if p["ora_inizio"] is None:
-        p["ora_inizio"] = intervalli[p["orientamento"]][0]
-
-    if p["ora_fine"] is None:
-        p["ora_fine"] = intervalli[p["orientamento"]][1]
-
-    if not (
-        0 <= p["ora_inizio"] < p["ora_fine"] <= 23
-    ):
-        raise ValueError("Intervallo orario non valido")
-
-    if p["orientamento"] in ("SUD", "ORIZZONTALE"):
-
-        if not (
-            p["ora_inizio"] < 12 < p["ora_fine"]
-        ):
-            raise ValueError(
-                "SUD e ORIZZONTALE devono comprendere le 12"
-            )
-
-    if p["orientamento"] == "EST" and p["ora_fine"] >= 12:
-
-        raise ValueError(
-            "Per EST utilizzare ore precedenti alle 12"
-        )
-
-    if p["orientamento"] == "OVEST" and p["ora_inizio"] <= 12:
-
-        raise ValueError(
-            "Per OVEST utilizzare ore successive alle 12"
-        )
 
     # Analemma automatico
 
@@ -273,26 +283,101 @@ def get_parametri(**modifiche):
 
         p["ora_analemma"] = orari_analemma[p["orientamento"]]
 
+    if not isinstance(p["ora_analemma"], (int, float)):
+        raise ValueError("Ora analemma non valida")
+
     # Campionamento
 
-    if p["campioni_curve"] < 20:
+    if (
+        not isinstance(p["campioni_curve"], int)
+        or p["campioni_curve"] < 20
+    ):
         raise ValueError("Campioni curve insufficienti")
 
-    if p["passo_giorni_ore"] < 1:
-        raise ValueError("Passo giorni non valido")
+    if not isinstance(p["anno"], int) or not 1 <= p["anno"] <= 9999:
+        raise ValueError("Anno non valido")
+
+    if not isinstance(p["estendi_curve_calendariali"], bool):
+        raise ValueError("Estensione curve non valida")
+
+    if not isinstance(p["crea_analemma"], bool):
+        raise ValueError("Parametro crea_analemma non valido")
+
+    if not isinstance(p["analemma_tutte_ore_luce"], bool):
+        raise ValueError("Parametro analemma_tutte_ore_luce non valido")
+
+    if not isinstance(p["crea_etichette"], bool):
+        raise ValueError("Parametro crea_etichette non valido")
+
+    if not isinstance(p["crea_etichette_ore"], bool):
+        raise ValueError("Parametro crea_etichette_ore non valido")
+
+    if not isinstance(p["crea_etichette_curve"], bool):
+        raise ValueError("Parametro crea_etichette_curve non valido")
+
+    if not isinstance(p["modalita_diagnostica"], bool):
+        raise ValueError("Parametro modalita_diagnostica non valido")
+
+    if (
+        not isinstance(p["margine_etichette"], (int, float))
+        or p["margine_etichette"] < 0
+    ):
+        raise ValueError("Margine etichette non valido")
+
+    if (
+        not isinstance(p["meridiano_fuso"], (int, float))
+        or not -180 <= p["meridiano_fuso"] <= 180
+    ):
+        raise ValueError("Meridiano di riferimento non valido")
 
     # Verifica date
 
     if not p["date_curve"]:
         raise ValueError("Specificare almeno una curva calendariale")
 
-    for etichetta, mese, giorno in p["date_curve"]:
+    date_verificate = set()
 
-        datetime.date(
+    for voce in p["date_curve"]:
+
+        if len(voce) == 3:
+            etichetta, mese, giorno = voce
+            declinazione_gradi = None
+
+        elif len(voce) == 4:
+            (
+                etichetta,
+                mese,
+                giorno,
+                declinazione_gradi
+            ) = voce
+
+        else:
+            raise ValueError("Formato date_curve non valido")
+
+        if not isinstance(etichetta, str) or not etichetta.strip():
+            raise ValueError("Etichetta curva non valida")
+
+        data = datetime.date(
             p["anno"],
             mese,
             giorno
         )
+
+        if data in date_verificate:
+            raise ValueError("Date curve duplicate")
+
+        date_verificate.add(data)
+
+        if (
+            declinazione_gradi is not None
+            and not isinstance(
+                declinazione_gradi,
+                (int, float)
+            )
+        ):
+            raise ValueError(
+                "Declinazione curva non valida"
+            )
 
     # Equazione del tempo
 
@@ -303,6 +388,38 @@ def get_parametri(**modifiche):
     ):
 
         raise ValueError("Riferimento analemma non valido")
+
+    if p["riferimento_linee_orarie"] not in (
+        "solare_medio_locale",
+        "CET",
+        "CEST"
+    ):
+
+        raise ValueError("Riferimento linee orarie non valido")
+
+    colori = (
+        "colore_piastra",
+        "colore_ore",
+        "colore_mezzogiorno",
+        "colore_mesi",
+        "colore_analemma",
+        "colore_gnomone"
+    )
+
+    for nome in colori:
+
+        colore = p[nome]
+
+        if (
+            not isinstance(colore, (tuple, list))
+            or len(colore) != 3
+            or any(
+                not isinstance(componente, (int, float))
+                or not 0 <= componente <= 1
+                for componente in colore
+            )
+        ):
+            raise ValueError("Colore non valido: " + nome)
 
     return p
 

@@ -14,11 +14,13 @@ from parametri import get_parametri
 
 from astronomia import (
     declinazione_solare,
-    angolo_orario_analemma
+    angolo_orario_analemma,
+    angolo_orario_ora
 )
 
 from geometria import (
     punto_ombra,
+    sole_illumina_superficie,
     punto_nel_quadrante,
     crea_linea,
     crea_curva,
@@ -87,7 +89,7 @@ def crea_piastra(doc, gruppo, p):
 
 def coordinate_attacco(p):
 
-    x = p["x_attacco"]
+    x = p["larghezza"] * p["x_attacco"]
 
     if p["orientamento"] == "ORIZZONTALE":
 
@@ -167,6 +169,45 @@ def punto_bordo_retta(x0, y0, dx, dy, p):
 
 
 # ============================================================
+# VERIFICA ORE ILLUMINATE
+# ============================================================
+
+def ora_illuminata(p, angolo_orario):
+
+    giorni_anno = (
+        366 if calendar.isleap(p["anno"]) else 365
+    )
+
+    for giorno in range(1, giorni_anno + 1):
+
+        delta = declinazione_solare(
+            giorno,
+            p["anno"]
+        )
+
+        if sole_illumina_superficie(
+            p,
+            delta,
+            angolo_orario
+        ):
+
+            return True
+
+    return False
+
+
+def ore_illuminate(p):
+
+    return [
+        ora for ora in range(24)
+        if ora_illuminata(
+            p,
+            angolo_orario_ora(ora, p)
+        )
+    ]
+
+
+# ============================================================
 # LINEE ORARIE - PARETE SUD
 # ============================================================
 
@@ -182,14 +223,9 @@ def crea_linee_orarie_sud(
 
     z = p["quota_linee"]
 
-    for ora in range(
-        p["ora_inizio"],
-        p["ora_fine"] + 1
-    ):
+    for ora in ore_illuminate(p):
 
-        H = math.radians(
-            15.0 * (ora - 12)
-        )
+        H = angolo_orario_ora(ora, p)
 
         theta = math.atan2(
             math.cos(phi) * math.sin(H),
@@ -243,7 +279,7 @@ def crea_linee_orarie_sud(
 
         )
 
-        if p["crea_etichette"]:
+        if p["crea_etichette"] and p["crea_etichette_ore"]:
 
             xt = x0 + 0.87 * (x1 - x0)
 
@@ -256,8 +292,8 @@ def crea_linee_orarie_sud(
 
                 "%02d" % ora,
 
-                xt + 5,
-                yt + 5,
+                xt + p["margine_etichette"],
+                yt + p["margine_etichette"],
 
                 z + 0.1,
                 12
@@ -284,86 +320,86 @@ def crea_linee_orarie_est_ovest(
 
     anno = p["anno"]
 
-    giorni_anno = (
-        366 if calendar.isleap(anno) else 365
+    giorno_inverno = datetime.date(
+        anno,
+        12,
+        21
+    ).timetuple().tm_yday
+
+    giorno_estate = datetime.date(
+        anno,
+        6,
+        21
+    ).timetuple().tm_yday
+
+    delta_inverno = declinazione_solare(
+        giorno_inverno,
+        anno
     )
 
-    passo = p["passo_giorni_ore"]
+    delta_estate = declinazione_solare(
+        giorno_estate,
+        anno
+    )
 
-    for ora in range(
-        p["ora_inizio"],
-        p["ora_fine"] + 1
-    ):
+    # Per EST/OVEST si valutano tutte le ore. L'intervallo
+    # configurato indica le ore illuminate, non le sole linee
+    # geometricamente contenute nel quadrante.
+    for ora in ore_illuminate(p):
 
-        H = math.radians(
-            15.0 * (ora - 12)
+        H = angolo_orario_ora(ora, p)
+
+        # Le linee orarie EST/OVEST sono parallele al gnomone.
+        # I loro estremi sono fissati dalle due declinazioni
+        # dei solstizi, non dai bordi del quadrante.
+        ombra_inverno = punto_ombra(
+            p,
+            delta_inverno,
+            H,
+            controlla_illuminazione=False
         )
 
-        punti = []
-
-        for giorno in range(
-            1,
-            giorni_anno + 1,
-            passo
-        ):
-
-            delta = declinazione_solare(
-                giorno,
-                anno
-            )
-
-            ombra = punto_ombra(
-                p,
-                delta,
-                H
-            )
-
-            if ombra is None:
-
-                punti.append(None)
-
-                continue
-
-            x = x0 + ombra[0]
-
-            y = y0 + ombra[1]
-
-            if punto_nel_quadrante(x, y, p):
-
-                punti.append(
-                    App.Vector(x, y, z)
-                )
-
-            else:
-
-                punti.append(None)
-
-        crea_segmenti_curva(
-
-            doc,
-            gruppo,
-
-            "Ora_%02d" % ora,
-
-            punti,
-
-            p["colore_mezzogiorno"]
-            if ora == 12 else p["colore_ore"],
-
-            p["spessore_linee"]
-
+        ombra_estate = punto_ombra(
+            p,
+            delta_estate,
+            H,
+            controlla_illuminazione=False
         )
 
-        if p["crea_etichette"]:
+        if ombra_inverno is not None and ombra_estate is not None:
 
-            validi = [
-                q for q in punti
-                if q is not None
-            ]
+            crea_linea(
+                doc,
+                gruppo,
+                "Ora_%02d" % ora,
+                App.Vector(
+                    x0 + ombra_inverno[0],
+                    y0 + ombra_inverno[1],
+                    z
+                ),
+                App.Vector(
+                    x0 + ombra_estate[0],
+                    y0 + ombra_estate[1],
+                    z
+                ),
+                p["colore_mezzogiorno"]
+                if ora == 12 else p["colore_ore"],
+                p["spessore_linee"]
+            )
 
-            if validi:
+            qx = x0 + (
+                ombra_inverno[0] + ombra_estate[0]
+            ) / 2.0
 
-                q = validi[len(validi) // 2]
+            qy = y0 + (
+                ombra_inverno[1] + ombra_estate[1]
+            ) / 2.0
+
+            if (
+                p["crea_etichette"]
+                and p["crea_etichette_ore"]
+                and punto_nel_quadrante(qx, qy, p)
+            ):
 
                 crea_testo(
 
@@ -372,8 +408,8 @@ def crea_linee_orarie_est_ovest(
 
                     "%02d" % ora,
 
-                    q.x + 6,
-                    q.y + 6,
+                    qx + 6,
+                    qy + 6,
 
                     z + 0.1,
                     12
@@ -398,14 +434,9 @@ def crea_linee_orarie_orizzontale(
 
     z = p["quota_linee"]
 
-    for ora in range(
-        p["ora_inizio"],
-        p["ora_fine"] + 1
-    ):
+    for ora in ore_illuminate(p):
 
-        H = math.radians(
-            15.0 * (ora - 12)
-        )
+        H = angolo_orario_ora(ora, p)
 
         # La declinazione zero è sufficiente
         # per determinare la direzione della retta oraria.
@@ -413,7 +444,8 @@ def crea_linee_orarie_orizzontale(
         ombra = punto_ombra(
             p,
             0.0,
-            H
+            H,
+            controlla_illuminazione=False
         )
 
         if ombra is None:
@@ -470,7 +502,7 @@ def crea_linee_orarie_orizzontale(
 
         )
 
-        if p["crea_etichette"]:
+        if p["crea_etichette"] and p["crea_etichette_ore"]:
 
             xt = x0 + 0.85 * (x1 - x0)
 
@@ -535,7 +567,7 @@ def crea_linee_orarie(doc, gruppo, p, x0, y0):
 # CURVE EQUINOZI E SOLSTIZI
 # ============================================================
 
-def crea_curve_mensili(
+def crea_curve_calendariali(
     doc,
     gruppo,
     p,
@@ -554,19 +586,33 @@ def crea_curve_mensili(
         p["spessore_linee"] - 0.5
     )
 
-    # Limiti angolari delle curve
+    # Le curve calendariali vengono estese sull'intero
+    # intervallo geometrico della giornata. I punti fuori
+    # dal quadrante vengono poi eliminati.
+    if p["orientamento"] in (
+        "SUD",
+        "EST",
+        "OVEST",
+        "ORIZZONTALE"
+    ):
 
-    H_inizio = math.radians(
-        15.0 * (p["ora_inizio"] - 12)
-    )
-
-    H_fine = math.radians(
-        15.0 * (p["ora_fine"] - 12)
-    )
+        H_inizio = math.radians(-89.9)
+        H_fine = math.radians(89.9)
+        estesa = p["estendi_curve_calendariali"]
 
     for indice, voce in enumerate(p["date_curve"]):
 
-        etichetta, mese, giorno_mese = voce
+        if len(voce) == 3:
+            etichetta, mese, giorno_mese = voce
+            declinazione_gradi = None
+
+        else:
+            (
+                etichetta,
+                mese,
+                giorno_mese,
+                declinazione_gradi
+            ) = voce
 
         giorno = datetime.date(
             p["anno"],
@@ -574,15 +620,15 @@ def crea_curve_mensili(
             giorno_mese
         ).timetuple().tm_yday
 
-        if "EQUINOZ" in etichetta.upper():
-
-            delta = 0.0
-
-        else:
-
+        if declinazione_gradi is None:
             delta = declinazione_solare(
                 giorno,
                 p["anno"]
+            )
+
+        else:
+            delta = math.radians(
+                declinazione_gradi
             )
 
         punti = []
@@ -601,7 +647,8 @@ def crea_curve_mensili(
             ombra = punto_ombra(
                 p,
                 delta,
-                H
+                H,
+                controlla_illuminazione=not estesa
             )
 
             if ombra is None:
@@ -652,31 +699,22 @@ def crea_curve_mensili(
 
         q = validi[len(validi) // 2]
 
-        crea_linea(
-
-            doc,
-            gruppo,
-
-            "Tacca_" + nome,
-
-            App.Vector(q.x - 20, q.y, z + 0.2),
-
-            App.Vector(q.x + 20, q.y, z + 0.2),
-
-            colore,
-            2.0
-
-        )
-
-        if p["crea_etichette"]:
+        if (
+            p["crea_etichette"]
+            and p["crea_etichette_curve"]
+        ):
 
             if indice % 2 == 0:
 
-                tx = q.x + 28
+                tx = q.x + 4 * p["margine_etichette"]
 
             else:
 
-                tx = q.x - len(etichetta) * 6 - 28
+                tx = (
+                    q.x
+                    - len(etichetta) * 6
+                    - 4 * p["margine_etichette"]
+                )
 
             crea_testo(
 
@@ -686,7 +724,7 @@ def crea_curve_mensili(
                 etichetta,
 
                 tx,
-                q.y + 6,
+                q.y + p["margine_etichette"],
 
                 z + 0.2,
                 10
@@ -717,89 +755,85 @@ def crea_analemma(
 
     z = p["quota_linee"] + 0.5
 
-    punti = []
+    if p["analemma_tutte_ore_luce"]:
 
-    for giorno in range(
-        1,
-        giorni_anno + 1
-    ):
-
-        delta = declinazione_solare(
-            giorno,
-            anno
-        )
-
-        H = angolo_orario_analemma(
-            giorno,
-            p
-        )
-
-        ombra = punto_ombra(
-            p,
-            delta,
-            H
-        )
-
-        if ombra is None:
-
-            punti.append(None)
-
-            continue
-
-        x = x0 + ombra[0]
-
-        y = y0 + ombra[1]
-
-        if punto_nel_quadrante(x, y, p):
-
-            punti.append(
-                App.Vector(x, y, z)
+        orari = [
+            ora for ora in range(24)
+            if ora_illuminata(
+                p,
+                angolo_orario_ora(ora, p)
             )
-
-        else:
-
-            punti.append(None)
-
-    crea_segmenti_curva(
-
-        doc,
-        gruppo,
-
-        "Analemma_12",
-
-        punti,
-
-        p["colore_analemma"],
-
-        p["spessore_linee"] + 1.0
-
-    )
-
-    if p["crea_etichette"]:
-
-        validi = [
-            q for q in punti
-            if q is not None
         ]
 
-        if validi:
+    else:
 
-            q = validi[len(validi) // 2]
+        orari = [p["ora_analemma"]]
 
-            crea_testo(
+    for ora in orari:
 
-                doc,
-                gruppo,
+        parametri_ora = p.copy()
+        parametri_ora["ora_analemma"] = ora
 
-                "ANALEMMA %.0f" % p["ora_analemma"],
+        punti = []
 
-                q.x + 18,
-                q.y + 5,
+        for giorno in range(
+            1,
+            giorni_anno + 1
+        ):
 
-                z + 0.1,
-                10
-
+            delta = declinazione_solare(
+                giorno,
+                anno
             )
+
+            H = angolo_orario_analemma(
+                giorno,
+                parametri_ora
+            )
+
+            ombra = punto_ombra(
+                p,
+                delta,
+                H
+            )
+
+            if ombra is None:
+
+                punti.append(None)
+
+                continue
+
+            x = x0 + ombra[0]
+
+            y = y0 + ombra[1]
+
+            if punto_nel_quadrante(x, y, p):
+
+                punti.append(
+                    App.Vector(x, y, z)
+                )
+
+            else:
+
+                punti.append(None)
+
+        suffisso = "%.0f" % ora
+
+        crea_segmenti_curva(
+
+            doc,
+            gruppo,
+
+            "Analemma_" + suffisso,
+
+            punti,
+
+            p["colore_analemma"],
+
+            p["spessore_linee"] + 1.0
+
+        )
+
 
 
 # ============================================================
@@ -1116,7 +1150,7 @@ def crea(**modifiche):
 
     # Curve stagionali
 
-    crea_curve_mensili(
+    crea_curve_calendariali(
         doc,
         g_mesi,
         p,
@@ -1263,14 +1297,21 @@ def crea(**modifiche):
 
     print("Punto attacco:", x0, y0)
 
-    print(
-        "Intervallo orario:",
-        p["ora_inizio"],
-        "-",
-        p["ora_fine"]
-    )
+    print("Ore disegnate:", ore_illuminate(p))
 
     print("Ora analemma:", p["ora_analemma"])
+
+    if p["modalita_diagnostica"]:
+
+        print("Ore illuminate:", ore_illuminate(p))
+        print(
+            "Curve calendariali estese:",
+            p["estendi_curve_calendariali"]
+        )
+        print(
+            "Riferimento linee orarie:",
+            p["riferimento_linee_orarie"]
+        )
 
     if p["orientamento"] == "SUD":
 

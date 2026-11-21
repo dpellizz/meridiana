@@ -14,10 +14,50 @@ from astronomia import vettore_sole
 # CALCOLO DEL PUNTO D'OMBRA
 #
 # Restituisce X,Y relative al piede dello gnomone.
-# Restituisce None se il Sole non illumina la superficie.
+# Restituisce None se il Sole non illumina la superficie,
+# salvo quando controlla_illuminazione è False.
 # ============================================================
 
-def punto_ombra(parametri, declinazione, angolo_orario):
+def sole_illumina_superficie(
+    parametri,
+    declinazione,
+    angolo_orario
+):
+
+    est, nord, alto = vettore_sole(
+        declinazione,
+        angolo_orario,
+        parametri["latitudine"]
+    )
+
+    if alto <= 0.00001:
+        return False
+
+    orientamento = parametri["orientamento"]
+
+    if orientamento == "SUD":
+        return -nord > 0.00001
+
+    if orientamento == "EST":
+        return est > 0.00001
+
+    if orientamento == "OVEST":
+        return -est > 0.00001
+
+    if orientamento == "ORIZZONTALE":
+        return True
+
+    raise ValueError(
+        "Orientamento non riconosciuto"
+    )
+
+
+def punto_ombra(
+    parametri,
+    declinazione,
+    angolo_orario,
+    controlla_illuminazione=True
+):
 
     phi = math.radians(parametri["latitudine"])
 
@@ -36,7 +76,14 @@ def punto_ombra(parametri, declinazione, angolo_orario):
 
     # Il Sole deve essere sopra l'orizzonte
 
-    if alto <= 0.00001:
+    if (
+        controlla_illuminazione
+        and not sole_illumina_superficie(
+            parametri,
+            delta,
+            H
+        )
+    ):
         return None
 
     # --------------------------------------------------------
@@ -49,7 +96,10 @@ def punto_ombra(parametri, declinazione, angolo_orario):
 
         D = -nord
 
-        if D <= 0.00001:
+        if controlla_illuminazione and D <= 0.00001:
+            return None
+
+        if not controlla_illuminazione and abs(D) <= 0.00001:
             return None
 
         # Altezza della punta dello gnomone
@@ -130,7 +180,10 @@ def punto_ombra(parametri, declinazione, angolo_orario):
             "Orientamento non riconosciuto"
         )
 
-    if normale <= 0.00001:
+    if controlla_illuminazione and normale <= 0.00001:
+        return None
+
+    if not controlla_illuminazione and abs(normale) <= 0.00001:
         return None
 
     x = -distanza * orizzontale / normale
