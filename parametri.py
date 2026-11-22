@@ -28,17 +28,17 @@ PARAMETRI = {
 
     # Parete o piano del quadrante:
     # SUD, EST, OVEST oppure ORIZZONTALE.
-    "orientamento": "SUD",
+    "orientamento": "OVEST",
 
     # --------------------------------------------------------
     # DIMENSIONI QUADRANTE (mm)
     # --------------------------------------------------------
 
     # Larghezza del quadrante lungo l'asse X, in mm.
-    "larghezza": 200.0,
+    "larghezza": 297.0,
 
     # Altezza del quadrante lungo l'asse Y, in mm.
-    "altezza": 200.0,
+    "altezza": 210.0,
 
     # Spessore della piastra, in mm.
     "spessore": 2.0,
@@ -106,7 +106,7 @@ PARAMETRI = {
     # Numero di campioni per ogni curva calendariale.
     # Valori maggiori producono curve piu' regolari ma
     # richiedono piu' tempo per la generazione.
-    "campioni_curve": 1000,
+    "campioni_curve": 2000,
 
     # Se True, estende le curve secondo la geometria solare
     # anche oltre i periodi di illuminazione effettiva.
@@ -156,7 +156,7 @@ PARAMETRI = {
     "crea_gnomone": True,
 
     # Interruttore generale per tutte le etichette testuali.
-    "crea_etichette": False,
+    "crea_etichette": True,
 
     # Se True e crea_etichette e' True, crea le ore.
     "crea_etichette_ore": True,
@@ -173,7 +173,7 @@ PARAMETRI = {
     "quota_linee": 0.0,
 
     # Spessore grafico delle linee in FreeCAD.
-    "spessore_linee": 4.0,
+    "spessore_linee": 0.5,
 
     # Distanza aggiuntiva delle etichette dalle geometrie, in mm.
     "margine_etichette": 1.0,

@@ -22,16 +22,58 @@ from geometria import (
     punto_ombra,
     sole_illumina_superficie,
     punto_nel_quadrante,
+    segmento_nel_quadrante,
     crea_linea,
     crea_curva,
     crea_segmenti_curva,
-    crea_testo
+    crea_testo as crea_testo_base
 )
 
 
 # ============================================================
 # CREAZIONE GRUPPI
 # ============================================================
+
+def crea_testo_nel_quadrante(
+    doc,
+    gruppo,
+    testo,
+    x,
+    y,
+    z,
+    dimensione,
+    p
+):
+
+    larghezza_stimata = len(str(testo)) * dimensione * 0.6
+    margine = p["margine_etichette"]
+
+    x = max(
+        margine,
+        min(
+            x,
+            p["larghezza"] - larghezza_stimata - margine
+        )
+    )
+
+    y = max(
+        margine,
+        min(
+            y,
+            p["altezza"] - dimensione - margine
+        )
+    )
+
+    return crea_testo_base(
+        doc,
+        gruppo,
+        testo,
+        x,
+        y,
+        z,
+        dimensione
+    )
+
 
 def crea_gruppo(doc, genitore, nome, etichetta):
 
@@ -285,7 +327,7 @@ def crea_linee_orarie_sud(
 
             yt = y0 + 0.87 * (y1 - y0)
 
-            crea_testo(
+            crea_testo_nel_quadrante(
 
                 doc,
                 gruppo,
@@ -296,7 +338,8 @@ def crea_linee_orarie_sud(
                 yt + p["margine_etichette"],
 
                 z,
-                p["dimensione_testo"]
+                p["dimensione_testo"],
+                p
 
             )
 
@@ -368,18 +411,31 @@ def crea_linee_orarie_est_ovest(
 
         if ombra_inverno is not None and ombra_estate is not None:
 
+            segmento = segmento_nel_quadrante(
+                x0 + ombra_inverno[0],
+                y0 + ombra_inverno[1],
+                x0 + ombra_estate[0],
+                y0 + ombra_estate[1],
+                p
+            )
+
+            if segmento is None:
+                continue
+
+            punto_inizio, punto_fine = segmento
+
             crea_linea(
                 doc,
                 gruppo,
                 "Ora_%02d" % ora,
                 App.Vector(
-                    x0 + ombra_inverno[0],
-                    y0 + ombra_inverno[1],
+                    punto_inizio[0],
+                    punto_inizio[1],
                     z
                 ),
                 App.Vector(
-                    x0 + ombra_estate[0],
-                    y0 + ombra_estate[1],
+                    punto_fine[0],
+                    punto_fine[1],
                     z
                 ),
                 p["colore_mezzogiorno"]
@@ -387,12 +443,12 @@ def crea_linee_orarie_est_ovest(
                 p["spessore_linee"]
             )
 
-            qx = x0 + (
-                ombra_inverno[0] + ombra_estate[0]
+            qx = (
+                punto_inizio[0] + punto_fine[0]
             ) / 2.0
 
-            qy = y0 + (
-                ombra_inverno[1] + ombra_estate[1]
+            qy = (
+                punto_inizio[1] + punto_fine[1]
             ) / 2.0
 
             if (
@@ -401,7 +457,7 @@ def crea_linee_orarie_est_ovest(
                 and punto_nel_quadrante(qx, qy, p)
             ):
 
-                crea_testo(
+                crea_testo_nel_quadrante(
 
                     doc,
                     gruppo,
@@ -412,7 +468,8 @@ def crea_linee_orarie_est_ovest(
                     qy + 6,
 
                     z,
-                    p["dimensione_testo"]
+                    p["dimensione_testo"],
+                    p
 
                 )
 
@@ -508,7 +565,7 @@ def crea_linee_orarie_orizzontale(
 
             yt = y0 + 0.85 * (y1 - y0)
 
-            crea_testo(
+            crea_testo_nel_quadrante(
 
                 doc,
                 gruppo,
@@ -519,7 +576,8 @@ def crea_linee_orarie_orizzontale(
                 yt + 5,
 
                 z,
-                p["dimensione_testo"]
+                p["dimensione_testo"],
+                p
 
             )
 
@@ -716,7 +774,7 @@ def crea_curve_calendariali(
                     - 4 * p["margine_etichette"]
                 )
 
-            crea_testo(
+            crea_testo_nel_quadrante(
 
                 doc,
                 gruppo,
@@ -727,7 +785,8 @@ def crea_curve_calendariali(
                 q.y + p["margine_etichette"],
 
                 z,
-                p["dimensione_testo"]
+                p["dimensione_testo"],
+                p
 
             )
 
@@ -1184,7 +1243,7 @@ def crea(**modifiche):
 
     if p["crea_etichette"]:
 
-        crea_testo(
+        crea_testo_nel_quadrante(
 
             doc,
             g_piastra,
@@ -1195,11 +1254,12 @@ def crea(**modifiche):
             p["altezza"] - 40,
 
             p["quota_linee"],
-            p["dimensione_titolo"]
+            p["dimensione_titolo"],
+            p
 
         )
 
-        crea_testo(
+        crea_testo_nel_quadrante(
 
             doc,
             g_piastra,
@@ -1214,11 +1274,12 @@ def crea(**modifiche):
             p["altezza"] - 70,
 
             p["quota_linee"],
-            p["dimensione_testo"]
+            p["dimensione_testo"],
+            p
 
         )
 
-        crea_testo(
+        crea_testo_nel_quadrante(
 
             doc,
             g_piastra,
@@ -1229,11 +1290,12 @@ def crea(**modifiche):
             p["altezza"] - 95,
 
             p["quota_linee"],
-            p["dimensione_testo"]
+            p["dimensione_testo"],
+            p
 
         )
 
-        crea_testo(
+        crea_testo_nel_quadrante(
 
             doc,
             g_piastra,
@@ -1244,7 +1306,8 @@ def crea(**modifiche):
             25,
 
             p["quota_linee"],
-            p["dimensione_testo"]
+            p["dimensione_testo"],
+            p
 
         )
 

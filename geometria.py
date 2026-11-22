@@ -209,6 +209,53 @@ def punto_nel_quadrante(x, y, parametri):
     )
 
 
+def segmento_nel_quadrante(
+    x1,
+    y1,
+    x2,
+    y2,
+    parametri
+):
+
+    """Limita un segmento ai bordi del quadrante."""
+
+    larghezza = parametri["larghezza"]
+    altezza = parametri["altezza"]
+    dx = x2 - x1
+    dy = y2 - y1
+    t_min = 0.0
+    t_max = 1.0
+
+    for componente, coordinata, bordo_minimo, bordo_massimo in (
+        (dx, x1, 0.0, larghezza),
+        (dy, y1, 0.0, altezza)
+    ):
+
+        if abs(componente) < 0.000000001:
+
+            if coordinata < bordo_minimo or coordinata > bordo_massimo:
+                return None
+
+            continue
+
+        t1 = (bordo_minimo - coordinata) / componente
+        t2 = (bordo_massimo - coordinata) / componente
+
+        if t1 > t2:
+            t1, t2 = t2, t1
+
+        t_min = max(t_min, t1)
+        t_max = min(t_max, t2)
+
+        if t_min > t_max:
+            return None
+
+    return (
+        (x1 + t_min * dx, y1 + t_min * dy),
+        (x1 + t_max * dx, y1 + t_max * dy)
+    )
+
+
 # ============================================================
 # CREAZIONE LINEA
 # ============================================================
