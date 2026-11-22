@@ -24,6 +24,23 @@ INSTALLAZIONE
 6. FreeCAD genererà il quadrante completo.
 
 
+ORIENTAMENTO DEL QUADRANTE
+--------------------------
+
+In "parametri.py" imposta:
+
+"orientamento": "SUD"
+
+I valori disponibili sono:
+
+"SUD"          parete rivolta a sud
+"EST"          parete rivolta a est
+"OVEST"        parete rivolta a ovest
+"ORIZZONTALE"  quadrante orizzontale
+
+Per un quadrante orizzontale la latitudine non può essere zero.
+
+
 MODIFICARE I PARAMETRI
 ----------------------
 
@@ -44,6 +61,15 @@ Salva il file.
 Esegui nuovamente la macro.
 
 Il quadrante verrà rigenerato con i nuovi parametri.
+
+Altri parametri utili dello gnomone sono:
+
+"raggio_gnomone": 1.0,
+"stacco_gnomone": 60.0,
+
+Le quote "x_attacco", "quota_attacco" e
+"quota_attacco_orizzontale" sono frazioni delle dimensioni
+del quadrante e determinano la posizione dell'attacco.
 
 
 MODIFICA DIRETTA DALLA CONSOLE
@@ -78,7 +104,7 @@ Il documento contiene gruppi separati per:
 
 01 - Quadrante
 02 - Linee orarie
-03 - Curve calendariali
+03 - Equinozi e solstizi
 04 - Analemma solare
 05 - Gnomone
 
@@ -90,16 +116,34 @@ Le linee orarie possono usare come riferimento:
 
 "riferimento_linee_orarie": "solare_medio_locale"
 
-Sono disponibili anche:
+Per le linee orarie e per l'analemma sono disponibili i riferimenti:
+
+"solare_medio_locale"
+"CET"
+"CEST"
+
+Con "CET" o "CEST", "meridiano_fuso" indica il meridiano
+centrale del fuso orario in gradi di longitudine
+(per l'Italia normalmente 15.0).
+
+Sono disponibili anche questi parametri:
 
 "estendi_curve_calendariali": True
+"crea_analemma": True
 "analemma_tutte_ore_luce": True
+"ora_analemma": 12
 "crea_etichette_ore": True
 "crea_etichette_curve": True
+"crea_gnomone": True
+"crea_riferimento_gnomone": True
 "modalita_diagnostica": False
 
 Con "analemma_tutte_ore_luce" attivo viene creato un
 analemma separato per ogni ora illuminata.
+
+Con "crea_analemma": False è possibile disattivare la
+generazione dell'analemma. "ora_analemma" viene usato
+quando "analemma_tutte_ore_luce" è disattivo.
 
 Le voci di "date_curve" hanno il formato:
 
