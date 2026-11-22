@@ -28,20 +28,20 @@ PARAMETRI = {
 
     # Parete o piano del quadrante:
     # SUD, EST, OVEST oppure ORIZZONTALE.
-    "orientamento": "EST",
+    "orientamento": "SUD",
 
     # --------------------------------------------------------
     # DIMENSIONI QUADRANTE (mm)
     # --------------------------------------------------------
 
     # Larghezza del quadrante lungo l'asse X, in mm.
-    "larghezza": 300.0,
+    "larghezza": 200.0,
 
     # Altezza del quadrante lungo l'asse Y, in mm.
-    "altezza": 300.0,
+    "altezza": 200.0,
 
     # Spessore della piastra, in mm.
-    "spessore": 5.0,
+    "spessore": 2.0,
 
     # --------------------------------------------------------
     # POSIZIONE ATTACCO GNOMONE
@@ -50,29 +50,29 @@ PARAMETRI = {
     # Quota verticale dell'attacco per SUD, EST e OVEST.
     # E' una frazione dell'altezza: 0 = bordo inferiore,
     # 1 = bordo superiore.
-    "quota_attacco": 0.60,
+    "quota_attacco": 0.95,
 
     # Quota verticale dell'attacco per ORIZZONTALE.
     # E' una frazione dell'altezza del quadrante.
-    "quota_attacco_orizzontale": 0.1,
+    "quota_attacco_orizzontale": 0.05,
 
     # Posizione orizzontale dell'attacco come frazione
     # della larghezza: 0 = bordo sinistro, 1 = destro.
-    "x_attacco": 0.60,
+    "x_attacco": 0.50,
 
     # --------------------------------------------------------
     # GNOMONE (mm)
     # --------------------------------------------------------
 
     # Lunghezza dell'asta dello gnomone, in mm.
-    "lunghezza_gnomone": 100.0,
+    "lunghezza_gnomone": 60.0,
 
     # Raggio del cilindro dello gnomone, in mm.
-    "raggio_gnomone": 1.5,
+    "raggio_gnomone": 1.0,
 
     # Distanza del nodus dalla parete per EST/OVEST, in mm.
     # Per le altre configurazioni non determina l'inclinazione.
-    "stacco_gnomone": 100.0,
+    "stacco_gnomone": 80.0,
 
     # --------------------------------------------------------
     # CURVE CALENDARIALI
@@ -94,10 +94,10 @@ PARAMETRI = {
     "date_curve": [
 
         ("EQUI PRIMAVERA", 3, 20, 0.0),
+        
+        ("SOLSTIZIO ESTIVO", 6, 21, None),
 
         ("EQUI AUTUNNO", 9, 23, 0.0),
-
-        ("SOLSTIZIO ESTIVO", 6, 21, None),
 
         ("SOLSTIZIO INVERNALE", 12, 21, None),
 
@@ -131,7 +131,7 @@ PARAMETRI = {
     # EST = 9
     # OVEST = 15
     # ORIZZONTALE = 12
-    "ora_analemma": None,
+    "ora_analemma": 12,
 
     # Riferimento temporale dell'analemma:
     # solare_medio_locale, CET oppure CEST.
@@ -169,21 +169,27 @@ PARAMETRI = {
     # VISUALIZZAZIONE
     # --------------------------------------------------------
 
-    # Quota Z delle linee sulla faccia della piastra, in mm.
-    "quota_linee": 0.8,
+    # Quota Z comune di linee, curve e testi stampabili, in mm.
+    "quota_linee": 0.0,
 
     # Spessore grafico delle linee in FreeCAD.
-    "spessore_linee": 1.5,
+    "spessore_linee": 4.0,
 
     # Distanza aggiuntiva delle etichette dalle geometrie, in mm.
-    "margine_etichette": 6.0,
+    "margine_etichette": 1.0,
+
+    # Dimensione delle etichette di ore e curve, in mm.
+    "dimensione_testo": 5.0,
+
+    # Dimensione del titolo e delle informazioni del quadrante, in mm.
+    "dimensione_titolo": 5.0,
 
     # Se True, stampa nel report le ore illuminate e le
     # principali scelte geometriche e temporali.
     "modalita_diagnostica": False,
 
     # Colore RGB della piastra, componenti tra 0 e 1.
-    "colore_piastra": (0.88, 0.84, 0.72),
+    "colore_piastra": (1.00, 1.00, 1.00),
 
     # Colore RGB delle linee orarie.
     "colore_ore": (0.12, 0.20, 0.38),
@@ -323,6 +329,14 @@ def get_parametri(**modifiche):
         or p["margine_etichette"] < 0
     ):
         raise ValueError("Margine etichette non valido")
+
+    for nome in ("dimensione_testo", "dimensione_titolo"):
+
+        if (
+            not isinstance(p[nome], (int, float))
+            or p[nome] <= 0
+        ):
+            raise ValueError("Dimensione testo non valida: " + nome)
 
     if (
         not isinstance(p["meridiano_fuso"], (int, float))

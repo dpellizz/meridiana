@@ -295,8 +295,8 @@ def crea_linee_orarie_sud(
                 xt + p["margine_etichette"],
                 yt + p["margine_etichette"],
 
-                z + 0.1,
-                12
+                z,
+                p["dimensione_testo"]
 
             )
 
@@ -411,8 +411,8 @@ def crea_linee_orarie_est_ovest(
                     qx + 6,
                     qy + 6,
 
-                    z + 0.1,
-                    12
+                    z,
+                    p["dimensione_testo"]
 
                 )
 
@@ -518,8 +518,8 @@ def crea_linee_orarie_orizzontale(
                 xt + 5,
                 yt + 5,
 
-                z + 0.1,
-                12
+                z,
+                p["dimensione_testo"]
 
             )
 
@@ -726,8 +726,8 @@ def crea_curve_calendariali(
                 tx,
                 q.y + p["margine_etichette"],
 
-                z + 0.2,
-                10
+                z,
+                p["dimensione_testo"]
 
             )
 
@@ -753,7 +753,7 @@ def crea_analemma(
         366 if calendar.isleap(anno) else 365
     )
 
-    z = p["quota_linee"] + 0.5
+    z = p["quota_linee"]
 
     if p["analemma_tutte_ore_luce"]:
 
@@ -1194,8 +1194,8 @@ def crea(**modifiche):
             25,
             p["altezza"] - 40,
 
-            1.0,
-            20
+            p["quota_linee"],
+            p["dimensione_titolo"]
 
         )
 
@@ -1213,8 +1213,8 @@ def crea(**modifiche):
             25,
             p["altezza"] - 70,
 
-            1.0,
-            12
+            p["quota_linee"],
+            p["dimensione_testo"]
 
         )
 
@@ -1228,8 +1228,8 @@ def crea(**modifiche):
             25,
             p["altezza"] - 95,
 
-            1.0,
-            11
+            p["quota_linee"],
+            p["dimensione_testo"]
 
         )
 
@@ -1243,8 +1243,8 @@ def crea(**modifiche):
             25,
             25,
 
-            1.0,
-            11
+            p["quota_linee"],
+            p["dimensione_testo"]
 
         )
 
