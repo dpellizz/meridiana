@@ -28,17 +28,17 @@ PARAMETRI = {
 
     # Parete o piano del quadrante:
     # SUD, EST, OVEST oppure ORIZZONTALE.
-    "orientamento": "OVEST",
+    "orientamento": "SUD",
 
     # --------------------------------------------------------
     # DIMENSIONI QUADRANTE (mm)
     # --------------------------------------------------------
 
     # Larghezza del quadrante lungo l'asse X, in mm.
-    "larghezza": 297.0,
+    "larghezza": 200.0,
 
     # Altezza del quadrante lungo l'asse Y, in mm.
-    "altezza": 210.0,
+    "altezza": 200.0,
 
     # Spessore della piastra, in mm.
     "spessore": 2.0,
@@ -72,7 +72,7 @@ PARAMETRI = {
 
     # Distanza del nodus dalla parete per EST/OVEST, in mm.
     # Per le altre configurazioni non determina l'inclinazione.
-    "stacco_gnomone": 80.0,
+    "stacco_gnomone": 60.0,
 
     # --------------------------------------------------------
     # CURVE CALENDARIALI
@@ -154,6 +154,9 @@ PARAMETRI = {
 
     # Se True, crea lo gnomone 3D.
     "crea_gnomone": True,
+
+    # Se True, evidenzia in 2D i punti di attacco dello gnomone.
+    "crea_riferimento_gnomone": True,
 
     # Interruttore generale per tutte le etichette testuali.
     "crea_etichette": True,
@@ -314,6 +317,14 @@ def get_parametri(**modifiche):
 
     if not isinstance(p["crea_etichette"], bool):
         raise ValueError("Parametro crea_etichette non valido")
+
+    if not isinstance(p["crea_gnomone"], bool):
+        raise ValueError("Parametro crea_gnomone non valido")
+
+    if not isinstance(p["crea_riferimento_gnomone"], bool):
+        raise ValueError(
+            "Parametro crea_riferimento_gnomone non valido"
+        )
 
     if not isinstance(p["crea_etichette_ore"], bool):
         raise ValueError("Parametro crea_etichette_ore non valido")

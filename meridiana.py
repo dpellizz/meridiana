@@ -1100,6 +1100,63 @@ def crea_gnomone(doc, gruppo, p, x0, y0):
     return obj
 
 
+def crea_riferimento_gnomone(doc, gruppo, p, x0, y0):
+
+    phi = math.radians(p["latitudine"])
+    lunghezza = p["lunghezza_gnomone"]
+    z = p["quota_linee"] + 0.05
+
+    if p["orientamento"] in ("EST", "OVEST"):
+
+        segno = 1.0 if p["orientamento"] == "EST" else -1.0
+        dx = segno * math.cos(phi)
+        dy = math.sin(phi)
+
+        punti_base = (
+            (
+                x0 - dx * lunghezza / 2.0,
+                y0 - dy * lunghezza / 2.0
+            ),
+            (
+                x0 + dx * lunghezza / 2.0,
+                y0 + dy * lunghezza / 2.0
+            )
+        )
+
+    else:
+
+        punti_base = ((x0, y0),)
+
+    cerchi = [
+        Part.makeCylinder(
+            p["raggio_gnomone"],
+            0.1,
+            App.Vector(x, y, z),
+            App.Vector(0, 0, 1)
+        )
+        for x, y in punti_base
+    ]
+
+    shape = Part.makeCompound(
+        cerchi
+    )
+
+    obj = doc.addObject(
+        "Part::Feature",
+        "RiferimentoGnomone"
+    )
+
+    obj.Label = "Punti attacco gnomone"
+    obj.Shape = shape
+    obj.ViewObject.ShapeColor = p["colore_gnomone"]
+    obj.ViewObject.LineColor = p["colore_gnomone"]
+    obj.ViewObject.LineWidth = p["spessore_linee"] + 0.5
+
+    gruppo.addObject(obj)
+
+    return obj
+
+
 # ============================================================
 # GENERAZIONE COMPLETA
 # ============================================================
@@ -1228,6 +1285,16 @@ def crea(**modifiche):
     )
 
     # Gnomone
+
+    if p["crea_riferimento_gnomone"]:
+
+        crea_riferimento_gnomone(
+            doc,
+            g_gnomone,
+            p,
+            x0,
+            y0
+        )
 
     if p["crea_gnomone"]:
 
