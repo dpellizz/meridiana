@@ -129,9 +129,13 @@ centrale del fuso orario in gradi di longitudine
 Sono disponibili anche questi parametri:
 
 "estendi_curve_calendariali": True
+"crea_linee_orarie": True
 "crea_analemma": True
 "analemma_tutte_ore_luce": True
 "ora_analemma": 12
+"passo_analemma_minuti": 60
+"periodo_analemma": "anno_intero"
+"spessore_analemma": 1.5
 "crea_etichette_ore": True
 "crea_etichette_curve": True
 "crea_gnomone": True
@@ -139,11 +143,54 @@ Sono disponibili anche questi parametri:
 "modalita_diagnostica": False
 
 Con "analemma_tutte_ore_luce" attivo viene creato un
-analemma separato per ogni ora illuminata.
+analemma separato per ogni intervallo illuminato. Il passo
+si imposta con "passo_analemma_minuti" e può essere:
+
+60 per un analemma ogni ora,
+30 per un analemma ogni mezz'ora,
+5 per un analemma ogni cinque minuti.
+
+Il parametro è utilizzato solo quando
+"analemma_tutte_ore_luce" è True. Quando è False viene
+creato soltanto l'analemma all'ora indicata da
+"ora_analemma".
+
+Gli analemmi possono essere distinti tramite il colore:
+
+"colore_analemma" per le ore intere,
+"colore_analemma_mezzore" per le mezzore,
+"colore_analemma_5_minuti" per gli altri intervalli.
+
+Con un passo di 5 minuti, ad esempio, le ore intere
+mantengono il colore principale, le mezzore hanno il colore
+dedicato e gli altri intervalli di cinque minuti usano il
+terzo colore.
+
+Lo spessore degli analemmi è indipendente da quello delle
+linee orarie e si imposta con:
+
+"spessore_analemma": 1.5
 
 Con "crea_analemma": False è possibile disattivare la
 generazione dell'analemma. "ora_analemma" viene usato
 quando "analemma_tutte_ore_luce" è disattivo.
+
+Con "crea_linee_orarie": False vengono nascoste le linee
+orarie, ma le etichette delle ore restano disponibili se
+"crea_etichette" e "crea_etichette_ore" sono True. Le curve
+di solstizio/equinozio e gli analemmi restano attivi.
+
+Con "periodo_analemma" si può scegliere la parte dell'anno
+da stampare. I valori disponibili sono:
+
+"anno_intero"
+"solstizio_invernale_estivo"
+"solstizio_estivo_invernale"
+
+I solstizi sono inclusi. Il primo intervallo comprende dal
+solstizio invernale a quello estivo, attraversando il cambio
+di anno; il secondo comprende dal solstizio estivo a quello
+invernale.
 
 Le voci di "date_curve" hanno il formato:
 

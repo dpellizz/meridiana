@@ -13,13 +13,15 @@ PARAMETRI = {
     # --------------------------------------------------------
     # Latitudine geografica in gradi decimali (-90, 90).
     # Nord positivo, Sud negativo.
-    # Esempi: casa 45.759280, nonno 45.715410.
     #
     # Longitudine geografica in gradi decimali (-180, 180).
     # Est positivo, Ovest negativo.
     #
     "latitudine": 45.759280,
-    "longitudine": 11.956822,
+    "longitudine": 11.956828,
+    
+    # 45.759202, 11.956828 C
+    # 45.715410, 11.957949 N
 
     # --------------------------------------------------------
     # ORIENTAMENTO
@@ -133,9 +135,19 @@ PARAMETRI = {
     # ORIZZONTALE = 12
     "ora_analemma": 12,
 
+    # Intervallo tra gli analemmi quando sono attive tutte
+    # le ore illuminate. Valori consigliati: 60, 30 oppure
+    # 5 minuti.
+    "passo_analemma_minuti": 5,
+
+    # Periodo dell'analemma:
+    # anno_intero, solstizio_invernale_estivo oppure
+    # solstizio_estivo_invernale. Gli estremi sono inclusi.
+    "periodo_analemma": "anno_intero",
+
     # Riferimento temporale dell'analemma:
     # solare_medio_locale, CET oppure CEST.
-    "riferimento_analemma": "CEST",
+    "riferimento_analemma": "CET",
 
     # Meridiano centrale del fuso, in gradi di longitudine.
     # Usato solo con CET o CEST; per l'Italia e' 15 gradi Est.
@@ -143,11 +155,14 @@ PARAMETRI = {
 
     # Riferimento temporale delle linee orarie:
     # solare_medio_locale, CET oppure CEST.
-    "riferimento_linee_orarie": "CEST",
+    "riferimento_linee_orarie": "CET",
 
     # --------------------------------------------------------
     # CREAZIONE OGGETTI
     # --------------------------------------------------------
+
+    # Se True, crea le linee orarie.
+    "crea_linee_orarie": False,
 
     # Se True, crea la piastra del quadrante.
     "crea_piastra": True,
@@ -178,6 +193,9 @@ PARAMETRI = {
     # Spessore grafico delle linee in FreeCAD.
     "spessore_linee": 0.5,
 
+    # Spessore grafico degli analemmi in FreeCAD.
+    "spessore_analemma": 2.0,
+
     # Distanza aggiuntiva delle etichette dalle geometrie, in mm.
     "margine_etichette": 1.0,
 
@@ -205,6 +223,11 @@ PARAMETRI = {
 
     # Colore RGB degli analemmi.
     "colore_analemma": (0.75, 0.08, 0.60),
+
+    # Colori RGB per distinguere mezzore e intervalli di
+    # cinque minuti quando vengono disegnati più analemmi.
+    "colore_analemma_mezzore": (0.10, 0.35, 0.80),
+    "colore_analemma_5_minuti": (0.45, 0.45, 0.45),
 
     # Colore RGB dello gnomone.
     "colore_gnomone": (0.72, 0.72, 0.76),
@@ -312,8 +335,23 @@ def get_parametri(**modifiche):
     if not isinstance(p["crea_analemma"], bool):
         raise ValueError("Parametro crea_analemma non valido")
 
+    if not isinstance(p["crea_linee_orarie"], bool):
+        raise ValueError("Parametro crea_linee_orarie non valido")
+
     if not isinstance(p["analemma_tutte_ore_luce"], bool):
         raise ValueError("Parametro analemma_tutte_ore_luce non valido")
+
+    if p["periodo_analemma"] not in (
+        "anno_intero",
+        "solstizio_invernale_estivo",
+        "solstizio_estivo_invernale"
+    ):
+        raise ValueError("Periodo analemma non valido")
+
+    if p["passo_analemma_minuti"] not in (60, 30, 5):
+        raise ValueError(
+            "Passo analemma ammesso: 60, 30 oppure 5 minuti"
+        )
 
     if not isinstance(p["crea_etichette"], bool):
         raise ValueError("Parametro crea_etichette non valido")
@@ -348,6 +386,14 @@ def get_parametri(**modifiche):
             or p[nome] <= 0
         ):
             raise ValueError("Dimensione testo non valida: " + nome)
+
+    for nome in ("spessore_linee", "spessore_analemma"):
+
+        if (
+            not isinstance(p[nome], (int, float))
+            or p[nome] <= 0
+        ):
+            raise ValueError("Spessore non valido: " + nome)
 
     if (
         not isinstance(p["meridiano_fuso"], (int, float))
@@ -428,6 +474,8 @@ def get_parametri(**modifiche):
         "colore_mezzogiorno",
         "colore_mesi",
         "colore_analemma",
+        "colore_analemma_mezzore",
+        "colore_analemma_5_minuti",
         "colore_gnomone"
     )
 
