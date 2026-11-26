@@ -275,10 +275,10 @@ def crea_linee_orarie_sud(
             math.cos(H)
         )
 
-        # X positivo verso Ovest,
+        # X positivo verso Est,
         # Y positivo verso l'alto.
 
-        dx = -math.sin(theta)
+        dx = math.sin(theta)
 
         dy = -math.cos(theta)
 

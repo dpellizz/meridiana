@@ -106,9 +106,9 @@ def punto_ombra(
 
         K = L * math.cos(phi) / D
 
-        # X positivo verso OVEST nella vista frontale
+        # X positivo verso EST nella vista frontale
 
-        x = -K * math.cos(delta) * math.sin(H)
+        x = K * math.cos(delta) * math.sin(H)
 
         # Y positivo verso l'alto
 

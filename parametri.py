@@ -4,6 +4,7 @@
 # ============================================================
 
 import datetime
+from pprint import pprint
 
 
 PARAMETRI = {
@@ -138,7 +139,7 @@ PARAMETRI = {
     # Intervallo tra gli analemmi quando sono attive tutte
     # le ore illuminate. Valori consigliati: 60, 30 oppure
     # 5 minuti.
-    "passo_analemma_minuti": 5,
+    "passo_analemma_minuti": 60,
 
     # Periodo dell'analemma:
     # anno_intero, solstizio_invernale_estivo oppure
@@ -236,13 +237,204 @@ PARAMETRI = {
 
 
 # ============================================================
+# CONFIGURAZIONE ORGANIZZATA
+# ============================================================
+
+CONFIGURAZIONE = {
+    "luogo": {
+        "latitudine": PARAMETRI["latitudine"],
+        "longitudine": PARAMETRI["longitudine"],
+        "anno": PARAMETRI["anno"],
+    },
+    "quadrante": {
+        "orientamento": PARAMETRI["orientamento"],
+        "larghezza": PARAMETRI["larghezza"],
+        "altezza": PARAMETRI["altezza"],
+        "spessore": PARAMETRI["spessore"],
+    },
+    "gnomone": {
+        "lunghezza": PARAMETRI["lunghezza_gnomone"],
+        "raggio": PARAMETRI["raggio_gnomone"],
+        "stacco": PARAMETRI["stacco_gnomone"],
+        "posizione": {
+            "x": PARAMETRI["x_attacco"],
+            "verticale": PARAMETRI["quota_attacco"],
+            "verticale_orizzontale": PARAMETRI["quota_attacco_orizzontale"],
+        },
+    },
+    "curve": {
+        "date": [
+            {
+                "etichetta": etichetta,
+                "mese": mese,
+                "giorno": giorno,
+                "declinazione": declinazione,
+            }
+            for etichetta, mese, giorno, declinazione
+            in PARAMETRI["date_curve"]
+        ],
+        "campioni": PARAMETRI["campioni_curve"],
+        "estese": PARAMETRI["estendi_curve_calendariali"],
+    },
+    "analemma": {
+        "abilitato": PARAMETRI["crea_analemma"],
+        "tutte_le_ore_illuminate": PARAMETRI["analemma_tutte_ore_luce"],
+        "ora": None,
+        "passo_minuti": PARAMETRI["passo_analemma_minuti"],
+        "periodo": PARAMETRI["periodo_analemma"],
+        "riferimento_temporale": PARAMETRI["riferimento_analemma"],
+    },
+    "tempo": {
+        "riferimento_linee_orarie": PARAMETRI["riferimento_linee_orarie"],
+        "meridiano_fuso": PARAMETRI["meridiano_fuso"],
+    },
+    "output": {
+        "linee_orarie": PARAMETRI["crea_linee_orarie"],
+        "piastra": PARAMETRI["crea_piastra"],
+        "gnomone": PARAMETRI["crea_gnomone"],
+        "riferimento_gnomone": PARAMETRI["crea_riferimento_gnomone"],
+    },
+    "etichette": {
+        "abilitate": PARAMETRI["crea_etichette"],
+        "ore": PARAMETRI["crea_etichette_ore"],
+        "curve": PARAMETRI["crea_etichette_curve"],
+    },
+    "stile": {
+        "quota_linee": PARAMETRI["quota_linee"],
+        "spessore_linee": PARAMETRI["spessore_linee"],
+        "spessore_analemma": PARAMETRI["spessore_analemma"],
+        "margine_etichette": PARAMETRI["margine_etichette"],
+        "dimensione_testo": PARAMETRI["dimensione_testo"],
+        "dimensione_titolo": PARAMETRI["dimensione_titolo"],
+        "diagnostica": PARAMETRI["modalita_diagnostica"],
+        "colori": {
+            "piastra": PARAMETRI["colore_piastra"],
+            "ore": PARAMETRI["colore_ore"],
+            "mezzogiorno": PARAMETRI["colore_mezzogiorno"],
+            "curve": PARAMETRI["colore_mesi"],
+            "analemma": PARAMETRI["colore_analemma"],
+            "analemma_mezzore": PARAMETRI["colore_analemma_mezzore"],
+            "analemma_5_minuti": PARAMETRI["colore_analemma_5_minuti"],
+            "gnomone": PARAMETRI["colore_gnomone"],
+        },
+    },
+}
+
+
+def _unisci_configurazione(base, modifiche):
+
+    risultato = base.copy()
+
+    for nome, valore in modifiche.items():
+
+        if (
+            nome in risultato
+            and isinstance(risultato[nome], dict)
+            and isinstance(valore, dict)
+        ):
+            risultato[nome] = _unisci_configurazione(
+                risultato[nome],
+                valore
+            )
+        else:
+            risultato[nome] = valore
+
+    return risultato
+
+
+def _appiattisci_configurazione(configurazione):
+
+    luogo = configurazione["luogo"]
+    quadrante = configurazione["quadrante"]
+    gnomone = configurazione["gnomone"]
+    posizione = gnomone["posizione"]
+    curve = configurazione["curve"]
+    analemma = configurazione["analemma"]
+    tempo = configurazione["tempo"]
+    output = configurazione["output"]
+    etichette = configurazione["etichette"]
+    stile = configurazione["stile"]
+    colori = stile["colori"]
+
+    date_curve = [
+        (
+            voce["etichetta"],
+            voce["mese"],
+            voce["giorno"],
+            voce["declinazione"],
+        )
+        for voce in curve["date"]
+    ]
+
+    return {
+        "latitudine": luogo["latitudine"],
+        "longitudine": luogo["longitudine"],
+        "anno": luogo["anno"],
+        "orientamento": quadrante["orientamento"],
+        "larghezza": quadrante["larghezza"],
+        "altezza": quadrante["altezza"],
+        "spessore": quadrante["spessore"],
+        "x_attacco": posizione["x"],
+        "quota_attacco": posizione["verticale"],
+        "quota_attacco_orizzontale": posizione["verticale_orizzontale"],
+        "lunghezza_gnomone": gnomone["lunghezza"],
+        "raggio_gnomone": gnomone["raggio"],
+        "stacco_gnomone": gnomone["stacco"],
+        "date_curve": date_curve,
+        "campioni_curve": curve["campioni"],
+        "estendi_curve_calendariali": curve["estese"],
+        "crea_analemma": analemma["abilitato"],
+        "analemma_tutte_ore_luce": analemma["tutte_le_ore_illuminate"],
+        "ora_analemma": analemma["ora"],
+        "passo_analemma_minuti": analemma["passo_minuti"],
+        "periodo_analemma": analemma["periodo"],
+        "riferimento_analemma": analemma["riferimento_temporale"],
+        "riferimento_linee_orarie": (
+            tempo["riferimento_linee_orarie"]
+            or analemma["riferimento_temporale"]
+        ),
+        "meridiano_fuso": tempo["meridiano_fuso"],
+        "crea_linee_orarie": output["linee_orarie"],
+        "crea_piastra": output["piastra"],
+        "crea_gnomone": output["gnomone"],
+        "crea_riferimento_gnomone": output["riferimento_gnomone"],
+        "crea_etichette": etichette["abilitate"],
+        "crea_etichette_ore": etichette["ore"],
+        "crea_etichette_curve": etichette["curve"],
+        "quota_linee": stile["quota_linee"],
+        "spessore_linee": stile["spessore_linee"],
+        "spessore_analemma": stile["spessore_analemma"],
+        "margine_etichette": stile["margine_etichette"],
+        "dimensione_testo": stile["dimensione_testo"],
+        "dimensione_titolo": stile["dimensione_titolo"],
+        "modalita_diagnostica": stile["diagnostica"],
+        "colore_piastra": colori["piastra"],
+        "colore_ore": colori["ore"],
+        "colore_mezzogiorno": colori["mezzogiorno"],
+        "colore_mesi": colori["curve"],
+        "colore_analemma": colori["analemma"],
+        "colore_analemma_mezzore": colori["analemma_mezzore"],
+        "colore_analemma_5_minuti": colori["analemma_5_minuti"],
+        "colore_gnomone": colori["gnomone"],
+    }
+
+
+# ============================================================
 # VALIDAZIONE E LETTURA PARAMETRI
 # ============================================================
 
 def get_parametri(**modifiche):
 
-    p = PARAMETRI.copy()
-    p.update(modifiche)
+    if any(nome in PARAMETRI for nome in modifiche):
+        configurazione = CONFIGURAZIONE
+        p = PARAMETRI.copy()
+        p.update(modifiche)
+    else:
+        configurazione = _unisci_configurazione(
+            CONFIGURAZIONE,
+            modifiche
+        )
+        p = _appiattisci_configurazione(configurazione)
 
     p["orientamento"] = p["orientamento"].upper()
 
@@ -497,8 +689,11 @@ def get_parametri(**modifiche):
     return p
 
 
-def stampa_parametri():
+def stampa_parametri(**modifiche):
 
-    for nome, valore in PARAMETRI.items():
+    configurazione = _unisci_configurazione(
+        CONFIGURAZIONE,
+        modifiche
+    )
 
-        print(nome, "=", valore)
+    pprint(configurazione, sort_dicts=False)
