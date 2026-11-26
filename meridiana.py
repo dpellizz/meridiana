@@ -1135,6 +1135,120 @@ def crea_analemma(
         )
 
 
+# ============================================================
+# PUNTI SU DATE E ORARI SPECIFICI
+# ============================================================
+
+def crea_punti_orari(doc, gruppo, p, x0, y0):
+
+    for indice, voce in enumerate(p["date_punti"], start=1):
+
+        mese, giorno_mese, ora, minuto = voce
+
+        giorno = datetime.date(
+            p["anno"],
+            mese,
+            giorno_mese
+        ).timetuple().tm_yday
+
+        delta = declinazione_solare(
+            giorno,
+            p["anno"]
+        )
+
+        parametri_istante = p.copy()
+        parametri_istante["ora_analemma"] = (
+            ora + minuto / 60.0
+        )
+
+        H = angolo_orario_analemma(
+            giorno,
+            parametri_istante
+        )
+
+        ombra = punto_ombra(p, delta, H)
+
+        if ombra is None:
+            continue
+
+        x = x0 + ombra[0]
+        y = y0 + ombra[1]
+
+        if not punto_nel_quadrante(x, y, p):
+            continue
+
+        punto = Part.makeCylinder(
+            p["diametro_punti"] / 2.0,
+            max(0.01, p["spessore"] * 0.1),
+            App.Vector(x, y, p["quota_linee"])
+        )
+
+        oggetto = doc.addObject(
+            "Part::Feature",
+            "Punto_orario_%02d" % indice
+        )
+
+        oggetto.Label = (
+            "Punto %02d/%02d %02d:%02d"
+            % (giorno_mese, mese, ora, minuto)
+        )
+        oggetto.Shape = punto
+        oggetto.ViewObject.ShapeColor = p["colore_mesi"]
+        gruppo.addObject(oggetto)
+
+
+
+def crea_informazioni_gnomone(doc, gruppo, p):
+
+    if p["orientamento"] not in ("SUD", "ORIZZONTALE"):
+        return
+
+    lunghezza = p["lunghezza_gnomone"]
+    latitudine = abs(p["latitudine"])
+    phi = math.radians(latitudine)
+
+    if p["orientamento"] == "SUD":
+        cateto_orizzontale = lunghezza * math.sin(phi)
+        cateto_verticale = lunghezza * math.cos(phi)
+        angolo = latitudine
+        riferimento_angolo = "verticale"
+        angolo_complementare = 90.0 - angolo
+        riferimento_complementare = "quadrante"
+    else:
+        cateto_orizzontale = lunghezza * math.cos(phi)
+        cateto_verticale = lunghezza * math.sin(phi)
+        angolo = latitudine
+        riferimento_angolo = "quadrante"
+        angolo_complementare = 90.0 - angolo
+        riferimento_complementare = "verticale"
+
+    righe = (
+        "GNOMONE: lunghezza %.1f mm" % lunghezza,
+        "Cateto orizzontale: %.1f mm" % cateto_orizzontale,
+        "Cateto verticale: %.1f mm" % cateto_verticale,
+        "Angolo dalla %s: %.1f gradi"
+        % (riferimento_angolo, angolo),
+        "Angolo dal %s: %.1f gradi"
+        % (riferimento_complementare, angolo_complementare),
+    )
+
+    dimensione = p["dimensione_testo"]
+    distanza = dimensione + 2.0
+    y = p["altezza"] - 125.0
+
+    for riga in righe:
+        crea_testo_nel_quadrante(
+            doc,
+            gruppo,
+            riga,
+            25.0,
+            y,
+            p["quota_linee"],
+            dimensione,
+            p
+        )
+        y -= distanza
+
 
 # ============================================================
 # GNOMONE
@@ -1478,11 +1592,18 @@ def crea(**modifiche):
         "04 - Analemma solare"
     )
 
+    g_punti = crea_gruppo(
+        doc,
+        root,
+        "Punti",
+        "05 - Punti orari"
+    )
+
     g_gnomone = crea_gruppo(
         doc,
         root,
         "Gnomone",
-        "05 - Gnomone"
+        "06 - Gnomone"
     )
 
     # Piastra
@@ -1525,6 +1646,16 @@ def crea(**modifiche):
     crea_analemma(
         doc,
         g_analemma,
+        p,
+        x0,
+        y0
+    )
+
+    # Punti su date e orari specifici
+
+    crea_punti_orari(
+        doc,
+        g_punti,
         p,
         x0,
         y0
@@ -1622,6 +1753,12 @@ def crea(**modifiche):
             p["dimensione_testo"],
             p
 
+        )
+
+        crea_informazioni_gnomone(
+            doc,
+            g_piastra,
+            p
         )
 
     # Ricalcolo

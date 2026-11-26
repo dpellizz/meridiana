@@ -106,7 +106,8 @@ Il documento contiene gruppi separati per:
 02 - Linee orarie
 03 - Equinozi e solstizi
 04 - Analemma solare
-05 - Gnomone
+05 - Punti orari
+06 - Gnomone
 
 
 PARAMETRI AVANZATI
@@ -144,6 +145,20 @@ Sono disponibili anche questi parametri:
 "modalita_diagnostica": False
 "esporta_pdf_1_1": False
 "percorso_pdf": "meridiana_1_1.pdf"
+
+Con "crea_etichette_descrittive": True, per i quadranti
+verticali a sud e orizzontali vengono stampati anche:
+
+- lunghezza dell'asta dello gnomone;
+- cateto orizzontale e cateto verticale;
+- angolo rispetto alla verticale e al piano del quadrante.
+
+La lunghezza dell'asta viene letta da
+"lunghezza_gnomone". I cateti sono calcolati sulla base
+della latitudine e soddisfano la relazione:
+
+cateto_orizzontale^2 + cateto_verticale^2 =
+lunghezza_gnomone^2
 
 Con "esporta_pdf_1_1": True viene esportato un PDF con
 dimensioni della pagina uguali a quelle del quadrante e
@@ -208,6 +223,27 @@ Con declinazione_gradi = None viene usata la declinazione
 calcolata per la data. Con declinazione_gradi = 0.0 si
 ottiene la curva teorica degli equinozi, senza controlli
 sul testo dell'etichetta.
+
+"date_punti" contiene gli istanti da evidenziare con punti
+sul quadrante. Ogni voce ha il formato:
+
+(mese, giorno, ora, minuto)
+
+Ad esempio:
+
+"date_punti": [
+    (6, 21, 10, 30),
+    (9, 23, 14, 15),
+]
+
+Il diametro dei punti, in millimetri, si imposta con:
+
+"diametro_punti": 5.0
+
+La posizione viene calcolata usando la declinazione della
+data, l'ora indicata e l'equazione del tempo. Gli istanti
+che non illuminano il quadrante o ricadono fuori dalla
+piastra non vengono disegnati.
 
 "x_attacco", "quota_attacco" e
 "quota_attacco_orizzontale" sono quote relative comprese

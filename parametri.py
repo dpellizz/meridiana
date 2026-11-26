@@ -53,11 +53,11 @@ PARAMETRI = {
     # Quota verticale dell'attacco per SUD, EST e OVEST.
     # E' una frazione dell'altezza: 0 = bordo inferiore,
     # 1 = bordo superiore.
-    "quota_attacco": 0.95,
+    "quota_attacco": 0.99,
 
     # Quota verticale dell'attacco per ORIZZONTALE.
     # E' una frazione dell'altezza del quadrante.
-    "quota_attacco_orizzontale": 0.05,
+    "quota_attacco_orizzontale": 0.01,
 
     # Posizione orizzontale dell'attacco come frazione
     # della larghezza: 0 = bordo sinistro, 1 = destro.
@@ -115,6 +115,21 @@ PARAMETRI = {
     # anche oltre i periodi di illuminazione effettiva.
     # I tratti fuori dalla piastra vengono comunque esclusi.
     "estendi_curve_calendariali": True,
+
+    # Elenco degli istanti da rappresentare con un punto.
+    # Ogni elemento e':
+    # (mese, giorno, ora, minuto).
+    "date_punti": [
+        (3,7, 17, 47),
+        (11,18,5,20),
+        (8, 2, 16, 15),
+        (7, 17, 11, 30),
+        (12,31,12,00),
+        (11,12,12,00)
+    ],
+
+    # Diametro dei punti sul quadrante, in mm.
+    "diametro_punti": 5.0,
 
     # --------------------------------------------------------
     # ANALEMMA
@@ -282,6 +297,10 @@ CONFIGURAZIONE = {
         "campioni": PARAMETRI["campioni_curve"],
         "estese": PARAMETRI["estendi_curve_calendariali"],
     },
+    "punti": {
+        "date": PARAMETRI["date_punti"],
+        "diametro": PARAMETRI["diametro_punti"],
+    },
     "analemma": {
         "abilitato": PARAMETRI["crea_analemma"],
         "tutte_le_ore_illuminate": PARAMETRI["analemma_tutte_ore_luce"],
@@ -357,6 +376,7 @@ def _appiattisci_configurazione(configurazione):
     gnomone = configurazione["gnomone"]
     posizione = gnomone["posizione"]
     curve = configurazione["curve"]
+    punti = configurazione["punti"]
     analemma = configurazione["analemma"]
     tempo = configurazione["tempo"]
     output = configurazione["output"]
@@ -391,6 +411,8 @@ def _appiattisci_configurazione(configurazione):
         "date_curve": date_curve,
         "campioni_curve": curve["campioni"],
         "estendi_curve_calendariali": curve["estese"],
+        "date_punti": punti["date"],
+        "diametro_punti": punti["diametro"],
         "crea_analemma": analemma["abilitato"],
         "analemma_tutte_ore_luce": analemma["tutte_le_ore_illuminate"],
         "ora_analemma": analemma["ora"],
@@ -498,6 +520,46 @@ def get_parametri(**modifiche):
 
     if p["stacco_gnomone"] <= 0:
         raise ValueError("Stacco gnomone non valido")
+
+    if (
+        not isinstance(p["diametro_punti"], (int, float))
+        or p["diametro_punti"] <= 0
+    ):
+        raise ValueError("Diametro punti non valido")
+
+    if not isinstance(p["date_punti"], (list, tuple)):
+        raise ValueError("Formato date_punti non valido")
+
+    istanti_verificati = set()
+
+    for voce in p["date_punti"]:
+
+        if (
+            not isinstance(voce, (list, tuple))
+            or len(voce) != 4
+            or any(not isinstance(valore, int) for valore in voce)
+        ):
+            raise ValueError(
+                "Formato date_punti non valido: "
+                "(mese, giorno, ora, minuto)"
+            )
+
+        mese, giorno, ora, minuto = voce
+
+        try:
+            data = datetime.date(p["anno"], mese, giorno)
+        except ValueError as errore:
+            raise ValueError("Data punto non valida") from errore
+
+        if not 0 <= ora <= 23 or not 0 <= minuto <= 59:
+            raise ValueError("Ora punto non valida")
+
+        istante = (data, ora, minuto)
+
+        if istante in istanti_verificati:
+            raise ValueError("Date punti duplicate")
+
+        istanti_verificati.add(istante)
 
     # Analemma automatico
 
