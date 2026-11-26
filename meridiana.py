@@ -9,6 +9,9 @@ import Part
 import math
 import calendar
 import datetime
+import os
+import re
+import tempfile
 
 from parametri import get_parametri
 
@@ -28,6 +31,166 @@ from geometria import (
     crea_segmenti_curva,
     crea_testo as crea_testo_base
 )
+
+
+def crea_etichetta_ora(
+    doc,
+    gruppo,
+    ora,
+    x,
+    y,
+    z,
+    p,
+    offset_x=0.0,
+    offset_y=0.0
+):
+
+    dimensione = p["dimensione_testo"]
+    larghezza = len(str(ora)) * dimensione * 0.6
+
+    return crea_testo_nel_quadrante(
+        doc,
+        gruppo,
+        "%02d" % ora,
+        x - larghezza / 2.0 + offset_x,
+        y - dimensione / 2.0 + offset_y,
+        z,
+        dimensione,
+        p
+    )
+
+
+def crea_etichetta_curva(
+    doc,
+    gruppo,
+    etichetta,
+    punto,
+    tangente_x,
+    tangente_y,
+    lato,
+    z,
+    p
+):
+
+    dimensione = p["dimensione_testo"]
+    larghezza = len(etichetta) * dimensione * 0.6
+    lunghezza = math.hypot(tangente_x, tangente_y)
+
+    if lunghezza < 0.00001:
+        normale_x = 0.0
+        normale_y = 1.0
+
+    else:
+        normale_x = -tangente_y / lunghezza
+        normale_y = tangente_x / lunghezza
+
+    distanza = dimensione + 2.0 * p["margine_etichette"]
+
+    return crea_testo_nel_quadrante(
+        doc,
+        gruppo,
+        etichetta,
+        punto.x - larghezza / 2.0 + lato * distanza * normale_x,
+        punto.y - dimensione / 2.0 + lato * distanza * normale_y,
+        z,
+        dimensione,
+        p
+    )
+
+
+def esporta_pdf_1_1(doc, p):
+
+    try:
+        import importSVG
+    except ImportError as errore:
+        raise RuntimeError(
+            "L'esportazione PDF richiede il modulo importSVG"
+        ) from errore
+
+    larghezza = p["larghezza"]
+    altezza = p["altezza"]
+    percorso = p["percorso_pdf"]
+    svg_path = None
+
+    try:
+        with tempfile.NamedTemporaryFile(
+            suffix=".svg",
+            delete=False
+        ) as file_template:
+            svg_path = file_template.name
+
+        sorgenti = [
+            oggetto
+            for oggetto in doc.Objects
+            if hasattr(oggetto, "Shape")
+            and not oggetto.Shape.isNull()
+            and not hasattr(oggetto, "Text")
+        ]
+        if not sorgenti:
+            raise RuntimeError(
+                "Nessun oggetto geometrico disponibile per il PDF"
+            )
+
+        importSVG.export(sorgenti, svg_path)
+
+        with open(svg_path, encoding="utf-8") as file_svg:
+            contenuto_svg = file_svg.read()
+
+        contenuto_svg = re.sub(
+            r'(<svg\b[^>]*\bwidth=")[^"]*(")',
+            r'\g<1>%.6fmm\g<2>' % larghezza,
+            contenuto_svg,
+            count=1
+        )
+        contenuto_svg = re.sub(
+            r'(<svg\b[^>]*\bheight=")[^"]*(")',
+            r'\g<1>%.6fmm\g<2>' % altezza,
+            contenuto_svg,
+            count=1
+        )
+
+        with open(svg_path, "w", encoding="utf-8") as file_svg:
+            file_svg.write(contenuto_svg)
+
+        try:
+            from PySide import QtCore, QtGui, QtSvg
+            from PySide.QtPrintSupport import QPrinter
+        except ImportError:
+            from PySide6 import QtCore, QtGui, QtSvg
+            from PySide6.QtPrintSupport import QPrinter
+
+        renderer = QtSvg.QSvgRenderer(svg_path)
+        if not renderer.isValid():
+            raise RuntimeError("SVG del quadrante non valido")
+
+        printer = QPrinter(QPrinter.HighResolution)
+        printer.setOutputFormat(QPrinter.PdfFormat)
+        printer.setOutputFileName(percorso)
+        printer.setFullPage(True)
+
+        if hasattr(QtGui, "QPageSize"):
+            printer.setPageSize(
+                QtGui.QPageSize(
+                    QtCore.QSizeF(larghezza, altezza),
+                    QtGui.QPageSize.Millimeter
+                )
+            )
+        else:
+            printer.setPaperSize(
+                QtCore.QSizeF(larghezza, altezza),
+                QPrinter.Millimeter
+            )
+
+        painter = QtGui.QPainter(printer)
+        try:
+            if not renderer.render(painter):
+                raise RuntimeError("Rendering SVG nel PDF non riuscito")
+        finally:
+            painter.end()
+
+    finally:
+        if svg_path is not None and os.path.exists(svg_path):
+            os.unlink(svg_path)
 
 
 # ============================================================
@@ -324,25 +487,28 @@ def crea_linee_orarie_sud(
 
             )
 
-        if p["crea_etichette"] and p["crea_etichette_ore"]:
+        if p["crea_etichette_ore"]:
 
-            xt = x0 + 0.87 * (x1 - x0)
+            posizione = 0.90
+            xt = x0 + posizione * (x1 - x0)
 
-            yt = y0 + 0.87 * (y1 - y0)
+            yt = y0 + posizione * (y1 - y0)
 
-            crea_testo_nel_quadrante(
+            dx = x1 - x0
+            dy = y1 - y0
+            lunghezza = math.hypot(dx, dy)
+
+            crea_etichetta_ora(
 
                 doc,
                 gruppo,
-
-                "%02d" % ora,
-
-                xt + p["margine_etichette"],
-                yt + p["margine_etichette"],
-
+                ora,
+                xt,
+                yt,
                 z,
-                p["dimensione_testo"],
-                p
+                p,
+                -dy / lunghezza * p["dimensione_testo"],
+                dx / lunghezza * p["dimensione_testo"]
 
             )
 
@@ -458,24 +624,21 @@ def crea_linee_orarie_est_ovest(
             ) / 2.0
 
             if (
-                p["crea_etichette"]
-                and p["crea_etichette_ore"]
+                p["crea_etichette_ore"]
                 and punto_nel_quadrante(qx, qy, p)
             ):
 
-                crea_testo_nel_quadrante(
+                crea_etichetta_ora(
 
                     doc,
                     gruppo,
-
-                    "%02d" % ora,
-
-                    qx + 6,
-                    qy + 6,
-
+                    ora,
+                    qx,
+                    qy,
                     z,
+                    p,
                     p["dimensione_testo"],
-                    p
+                    p["dimensione_testo"]
 
                 )
 
@@ -568,25 +731,28 @@ def crea_linee_orarie_orizzontale(
 
             )
 
-        if p["crea_etichette"] and p["crea_etichette_ore"]:
+        if p["crea_etichette_ore"]:
 
-            xt = x0 + 0.85 * (x1 - x0)
+            posizione = 0.90
+            xt = x0 + posizione * (x1 - x0)
 
-            yt = y0 + 0.85 * (y1 - y0)
+            yt = y0 + posizione * (y1 - y0)
 
-            crea_testo_nel_quadrante(
+            dx = x1 - x0
+            dy = y1 - y0
+            lunghezza = math.hypot(dx, dy)
+
+            crea_etichetta_ora(
 
                 doc,
                 gruppo,
-
-                "%02d" % ora,
-
-                xt + 5,
-                yt + 5,
-
+                ora,
+                xt,
+                yt,
                 z,
-                p["dimensione_testo"],
-                p
+                p,
+                -dy / lunghezza * p["dimensione_testo"],
+                dx / lunghezza * p["dimensione_testo"]
 
             )
 
@@ -766,45 +932,40 @@ def crea_curve_calendariali(
 
         # Riferimento a metà curva visibile
 
-        validi = [
-            q for q in punti
-            if q is not None
+        indici_validi = [
+            indice_punto
+            for indice_punto, punto in enumerate(punti)
+            if punto is not None
         ]
 
-        if not validi:
+        if not indici_validi:
             continue
 
-        q = validi[len(validi) // 2]
+        posizione = len(indici_validi) // 2
+        indice_punto = indici_validi[posizione]
+        q = punti[indice_punto]
 
         if (
-            p["crea_etichette"]
-            and p["crea_etichette_curve"]
+            p["crea_etichette_curve"]
         ):
 
-            if indice % 2 == 0:
+            indice_precedente = indici_validi[max(0, posizione - 1)]
+            indice_successivo = indici_validi[
+                min(len(indici_validi) - 1, posizione + 1)
+            ]
+            precedente = punti[indice_precedente]
+            successivo = punti[indice_successivo]
 
-                tx = q.x + 4 * p["margine_etichette"]
-
-            else:
-
-                tx = (
-                    q.x
-                    - len(etichetta) * 6
-                    - 4 * p["margine_etichette"]
-                )
-
-            crea_testo_nel_quadrante(
+            crea_etichetta_curva(
 
                 doc,
                 gruppo,
-
                 etichetta,
-
-                tx,
-                q.y + p["margine_etichette"],
-
+                q,
+                successivo.x - precedente.x,
+                successivo.y - precedente.y,
+                1.0 if indice % 2 == 0 else -1.0,
                 z,
-                p["dimensione_testo"],
                 p
 
             )
@@ -1336,10 +1497,7 @@ def crea(**modifiche):
 
     # Linee orarie
 
-    crea_etichette_ore = (
-        p["crea_etichette"]
-        and p["crea_etichette_ore"]
-    )
+    crea_etichette_ore = p["crea_etichette_ore"]
 
     if p["crea_linee_orarie"] or crea_etichette_ore:
 
@@ -1396,7 +1554,7 @@ def crea(**modifiche):
 
     # Titolo
 
-    if p["crea_etichette"]:
+    if p["crea_etichette_descrittive"]:
 
         crea_testo_nel_quadrante(
 
@@ -1469,6 +1627,10 @@ def crea(**modifiche):
     # Ricalcolo
 
     doc.recompute()
+
+    if p["esporta_pdf_1_1"]:
+
+        esporta_pdf_1_1(doc, p)
 
     # Visualizzazione
 

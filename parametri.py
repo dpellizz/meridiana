@@ -144,7 +144,7 @@ PARAMETRI = {
     # Periodo dell'analemma:
     # anno_intero, solstizio_invernale_estivo oppure
     # solstizio_estivo_invernale. Gli estremi sono inclusi.
-    "periodo_analemma": "anno_intero",
+    "periodo_analemma": "solstizio_invernale_estivo",
 
     # Riferimento temporale dell'analemma:
     # solare_medio_locale, CET oppure CEST.
@@ -169,19 +169,25 @@ PARAMETRI = {
     "crea_piastra": True,
 
     # Se True, crea lo gnomone 3D.
-    "crea_gnomone": True,
+    "crea_gnomone": False,
 
     # Se True, evidenzia in 2D i punti di attacco dello gnomone.
     "crea_riferimento_gnomone": True,
 
-    # Interruttore generale per tutte le etichette testuali.
-    "crea_etichette": True,
+    # Se True, esporta il quadrante in un PDF a scala 1:1.
+    "esporta_pdf_1_1": True,
 
-    # Se True e crea_etichette e' True, crea le ore.
+    # Percorso del PDF esportato, relativo o assoluto.
+    "percorso_pdf": "/Users/dpellizz/Downloads/meridiana_1_1.pdf",
+
+    # Se True, crea titolo e informazioni descrittive.
+    "crea_etichette_descrittive": False,
+
+    # Se True, crea le etichette delle ore.
     "crea_etichette_ore": True,
 
-    # Se True e crea_etichette e' True, crea le etichette
-    # di equinozi, solstizi e date calendariali.
+    # Se True, crea le etichette di equinozi, solstizi e date
+    # calendariali.
     "crea_etichette_curve": True,
 
     # --------------------------------------------------------
@@ -192,7 +198,7 @@ PARAMETRI = {
     "quota_linee": 0.0,
 
     # Spessore grafico delle linee in FreeCAD.
-    "spessore_linee": 0.5,
+    "spessore_linee": 5.5,
 
     # Spessore grafico degli analemmi in FreeCAD.
     "spessore_analemma": 2.0,
@@ -293,9 +299,11 @@ CONFIGURAZIONE = {
         "piastra": PARAMETRI["crea_piastra"],
         "gnomone": PARAMETRI["crea_gnomone"],
         "riferimento_gnomone": PARAMETRI["crea_riferimento_gnomone"],
+        "esporta_pdf_1_1": PARAMETRI["esporta_pdf_1_1"],
+        "percorso_pdf": PARAMETRI["percorso_pdf"],
     },
     "etichette": {
-        "abilitate": PARAMETRI["crea_etichette"],
+        "descrittive": PARAMETRI["crea_etichette_descrittive"],
         "ore": PARAMETRI["crea_etichette_ore"],
         "curve": PARAMETRI["crea_etichette_curve"],
     },
@@ -398,7 +406,9 @@ def _appiattisci_configurazione(configurazione):
         "crea_piastra": output["piastra"],
         "crea_gnomone": output["gnomone"],
         "crea_riferimento_gnomone": output["riferimento_gnomone"],
-        "crea_etichette": etichette["abilitate"],
+        "esporta_pdf_1_1": output["esporta_pdf_1_1"],
+        "percorso_pdf": output["percorso_pdf"],
+        "crea_etichette_descrittive": etichette["descrittive"],
         "crea_etichette_ore": etichette["ore"],
         "crea_etichette_curve": etichette["curve"],
         "quota_linee": stile["quota_linee"],
@@ -545,8 +555,10 @@ def get_parametri(**modifiche):
             "Passo analemma ammesso: 60, 30 oppure 5 minuti"
         )
 
-    if not isinstance(p["crea_etichette"], bool):
-        raise ValueError("Parametro crea_etichette non valido")
+    if not isinstance(p["crea_etichette_descrittive"], bool):
+        raise ValueError(
+            "Parametro crea_etichette_descrittive non valido"
+        )
 
     if not isinstance(p["crea_gnomone"], bool):
         raise ValueError("Parametro crea_gnomone non valido")
@@ -555,6 +567,15 @@ def get_parametri(**modifiche):
         raise ValueError(
             "Parametro crea_riferimento_gnomone non valido"
         )
+
+    if not isinstance(p["esporta_pdf_1_1"], bool):
+        raise ValueError("Parametro esporta_pdf_1_1 non valido")
+
+    if (
+        not isinstance(p["percorso_pdf"], str)
+        or not p["percorso_pdf"].strip()
+    ):
+        raise ValueError("Parametro percorso_pdf non valido")
 
     if not isinstance(p["crea_etichette_ore"], bool):
         raise ValueError("Parametro crea_etichette_ore non valido")

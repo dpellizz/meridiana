@@ -136,11 +136,19 @@ Sono disponibili anche questi parametri:
 "passo_analemma_minuti": 60
 "periodo_analemma": "anno_intero"
 "spessore_analemma": 1.5
+"crea_etichette_descrittive": True
 "crea_etichette_ore": True
 "crea_etichette_curve": True
 "crea_gnomone": True
 "crea_riferimento_gnomone": True
 "modalita_diagnostica": False
+"esporta_pdf_1_1": False
+"percorso_pdf": "meridiana_1_1.pdf"
+
+Con "esporta_pdf_1_1": True viene esportato un PDF con
+dimensioni della pagina uguali a quelle del quadrante e
+scala 1:1. Il modulo TechDrawGui di FreeCAD deve essere
+disponibile. Il percorso può essere relativo o assoluto.
 
 Con "analemma_tutte_ore_luce" attivo viene creato un
 analemma separato per ogni intervallo illuminato. Il passo
@@ -177,7 +185,7 @@ quando "analemma_tutte_ore_luce" è disattivo.
 
 Con "crea_linee_orarie": False vengono nascoste le linee
 orarie, ma le etichette delle ore restano disponibili se
-"crea_etichette" e "crea_etichette_ore" sono True. Le curve
+"crea_etichette_ore" è True. Le curve
 di solstizio/equinozio e gli analemmi restano attivi.
 
 Con "periodo_analemma" si può scegliere la parte dell'anno
