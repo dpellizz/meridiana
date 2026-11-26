@@ -90,6 +90,62 @@ meridiana.crea(
 Puoi modificare i singoli parametri senza modificare
 il file parametri.py.
 
+PROFILI MULTIPLI
+----------------
+
+Per gestire più meridiane senza riscrivere ogni volta i
+parametri, usa il dizionario "PROFILI" nel file separato
+"profili.py". Il file contiene solo le configurazioni delle
+singole meridiane, mentre "parametri.py" contiene i valori
+generali e la logica del programma.
+Ogni profilo contiene soltanto i valori diversi dalla
+configurazione generale.
+
+Esempio:
+
+PROFILI = {
+    "meridiana_1": {
+        "luogo": {
+            "latitudine": 45.759280,
+            "longitudine": 11.956828,
+        },
+        "quadrante": {
+            "orientamento": "SUD",
+            "larghezza": 800.0,
+            "altezza": 1000.0,
+        },
+        "gnomone": {
+            "lunghezza": 300.0,
+        },
+    },
+    "meridiana_2": {
+        "luogo": {
+            "latitudine": 46.000000,
+            "longitudine": 12.000000,
+        },
+        "quadrante": {
+            "orientamento": "ORIZZONTALE",
+        },
+    },
+}
+
+Per usare un profilo dalla console:
+
+meridiana.crea(profilo="meridiana_1")
+
+Per usare sempre un profilo quando si avvia la macro,
+imposta in profili.py:
+
+PROFILO_ATTIVO = "meridiana_1"
+
+Per cambiare profilo è sufficiente modificare soltanto
+questa riga e rieseguire la macro. I documenti FreeCAD
+già generati restano indipendenti tra loro.
+
+I nomi disponibili possono essere ottenuti con:
+
+parametri.profili_disponibili()
+
 
 SALVATAGGIO
 -----------

@@ -39,11 +39,14 @@ if CARTELLA not in sys.path:
 # CARICAMENTO E AGGIORNAMENTO MODULI
 # ------------------------------------------------------------
 
+import profili
 import parametri
 import astronomia
 import geometria
 import meridiana
 
+
+importlib.reload(profili)
 
 importlib.reload(parametri)
 
@@ -58,4 +61,6 @@ importlib.reload(meridiana)
 # GENERAZIONE MERIDIANA
 # ------------------------------------------------------------
 
-doc = meridiana.crea()
+doc = meridiana.crea(
+    profilo=profili.PROFILO_ATTIVO
+) if profili.PROFILO_ATTIVO else meridiana.crea()

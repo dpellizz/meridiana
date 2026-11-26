@@ -6,6 +6,8 @@
 import datetime
 from pprint import pprint
 
+from profili import PROFILI, PROFILO_ATTIVO
+
 
 PARAMETRI = {
 
@@ -18,8 +20,8 @@ PARAMETRI = {
     # Longitudine geografica in gradi decimali (-180, 180).
     # Est positivo, Ovest negativo.
     #
-    "latitudine": 45.759280,
-    "longitudine": 11.956828,
+    "latitudine": 0,
+    "longitudine": 0,
     
     # 45.759202, 11.956828 C
     # 45.715410, 11.957949 N
@@ -196,7 +198,7 @@ PARAMETRI = {
     "percorso_pdf": "/Users/dpellizz/Downloads/meridiana_1_1.pdf",
 
     # Se True, crea titolo e informazioni descrittive.
-    "crea_etichette_descrittive": False,
+    "crea_etichette_descrittive": True,
 
     # Se True, crea le etichette delle ore.
     "crea_etichette_ore": True,
@@ -347,7 +349,6 @@ CONFIGURAZIONE = {
     },
 }
 
-
 def _unisci_configurazione(base, modifiche):
 
     risultato = base.copy()
@@ -457,13 +458,37 @@ def _appiattisci_configurazione(configurazione):
 
 def get_parametri(**modifiche):
 
+    nome_profilo = modifiche.pop("profilo", None)
+
+    if nome_profilo is not None:
+        if (
+            not isinstance(nome_profilo, str)
+            or nome_profilo not in PROFILI
+        ):
+            raise ValueError(
+                "Profilo non valido: %s"
+                % nome_profilo
+            )
+
+    configurazione_base = CONFIGURAZIONE
+
+    if nome_profilo is not None:
+        configurazione_base = _unisci_configurazione(
+            configurazione_base,
+            PROFILI[nome_profilo]
+        )
+
     if any(nome in PARAMETRI for nome in modifiche):
-        configurazione = CONFIGURAZIONE
-        p = PARAMETRI.copy()
+        if nome_profilo is None:
+            p = PARAMETRI.copy()
+        else:
+            p = _appiattisci_configurazione(
+                configurazione_base
+            )
         p.update(modifiche)
     else:
         configurazione = _unisci_configurazione(
-            CONFIGURAZIONE,
+            configurazione_base,
             modifiche
         )
         p = _appiattisci_configurazione(configurazione)
@@ -772,10 +797,31 @@ def get_parametri(**modifiche):
     return p
 
 
+def profili_disponibili():
+
+    return tuple(PROFILI)
+
+
 def stampa_parametri(**modifiche):
+
+    nome_profilo = modifiche.pop("profilo", None)
+
+    if (
+        nome_profilo is not None
+        and nome_profilo not in PROFILI
+    ):
+        raise ValueError(
+            "Profilo non valido: %s"
+            % nome_profilo
+        )
 
     configurazione = _unisci_configurazione(
         CONFIGURAZIONE,
+        PROFILI.get(nome_profilo, {}) if nome_profilo else {}
+    )
+
+    configurazione = _unisci_configurazione(
+        configurazione,
         modifiche
     )
 
