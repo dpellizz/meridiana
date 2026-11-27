@@ -1177,10 +1177,20 @@ def crea_punti_orari(doc, gruppo, p, x0, y0):
         if not punto_nel_quadrante(x, y, p):
             continue
 
+        altezza_punto = max(0.01, p["spessore"] * 0.1)
         punto = Part.makeCylinder(
             p["diametro_punti"] / 2.0,
-            max(0.01, p["spessore"] * 0.1),
+            altezza_punto,
             App.Vector(x, y, p["quota_linee"])
+        )
+        centro_punto = Part.makeCylinder(
+            p["diametro_punti"] / 4.0,
+            altezza_punto,
+            App.Vector(
+                x,
+                y,
+                p["quota_linee"] + altezza_punto
+            )
         )
 
         oggetto = doc.addObject(
@@ -1194,7 +1204,18 @@ def crea_punti_orari(doc, gruppo, p, x0, y0):
         )
         oggetto.Shape = punto
         oggetto.ViewObject.ShapeColor = p["colore_mesi"]
+        oggetto.ViewObject.LineColor = p["colore_mesi"]
         gruppo.addObject(oggetto)
+
+        centro = doc.addObject(
+            "Part::Feature",
+            "Centro_punto_orario_%02d" % indice
+        )
+        centro.Label = oggetto.Label + " (centro)"
+        centro.Shape = centro_punto
+        centro.ViewObject.ShapeColor = (1.0, 1.0, 1.0)
+        centro.ViewObject.LineColor = (1.0, 1.0, 1.0)
+        gruppo.addObject(centro)
 
 
 

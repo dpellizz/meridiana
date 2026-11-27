@@ -23,9 +23,6 @@ PARAMETRI = {
     "latitudine": 0,
     "longitudine": 0,
     
-    # 45.759202, 11.956828 C
-    # 45.715410, 11.957949 N
-
     # --------------------------------------------------------
     # ORIENTAMENTO
     # SUD / EST / OVEST / ORIZZONTALE
@@ -33,17 +30,17 @@ PARAMETRI = {
 
     # Parete o piano del quadrante:
     # SUD, EST, OVEST oppure ORIZZONTALE.
-    "orientamento": "SUD",
+    "orientamento": "",
 
     # --------------------------------------------------------
     # DIMENSIONI QUADRANTE (mm)
     # --------------------------------------------------------
 
     # Larghezza del quadrante lungo l'asse X, in mm.
-    "larghezza": 200.0,
+    "larghezza": 0.0,
 
     # Altezza del quadrante lungo l'asse Y, in mm.
-    "altezza": 200.0,
+    "altezza": 0.0,
 
     # Spessore della piastra, in mm.
     "spessore": 2.0,
@@ -55,15 +52,15 @@ PARAMETRI = {
     # Quota verticale dell'attacco per SUD, EST e OVEST.
     # E' una frazione dell'altezza: 0 = bordo inferiore,
     # 1 = bordo superiore.
-    "quota_attacco": 0.99,
+    "quota_attacco": 0.0,
 
     # Quota verticale dell'attacco per ORIZZONTALE.
     # E' una frazione dell'altezza del quadrante.
-    "quota_attacco_orizzontale": 0.01,
+    "quota_attacco_orizzontale": 0.0,
 
     # Posizione orizzontale dell'attacco come frazione
     # della larghezza: 0 = bordo sinistro, 1 = destro.
-    "x_attacco": 0.50,
+    "x_attacco": 0.0,
 
     # --------------------------------------------------------
     # GNOMONE (mm)
@@ -122,10 +119,10 @@ PARAMETRI = {
     # Ogni elemento e':
     # (mese, giorno, ora, minuto).
     "date_punti": [
-        (3,7, 17, 47),
-        (11,18,5,20),
-        (8, 2, 16, 15),
-        (7, 17, 11, 30),
+        (3,7, 12, 00),
+        (11,18,12,00),
+        (8, 2, 12, 00),
+        (7, 17, 12, 00),
         (12,31,12,00),
         (11,12,12,00)
     ],
@@ -161,7 +158,7 @@ PARAMETRI = {
     # Periodo dell'analemma:
     # anno_intero, solstizio_invernale_estivo oppure
     # solstizio_estivo_invernale. Gli estremi sono inclusi.
-    "periodo_analemma": "solstizio_invernale_estivo",
+    "periodo_analemma": "anno_intero",
 
     # Riferimento temporale dell'analemma:
     # solare_medio_locale, CET oppure CEST.
